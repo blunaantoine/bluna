@@ -1,0 +1,880 @@
+
+
+Voici une solution complète : une page HTML unique, autonome et responsive, conçue selon le cahier des charges de **BLUNA GRAPHISME**.
+
+Ce design respecte l'identité "Luxe Moderne" avec une thématique Argent/Silver sur fond sombre, mettant en valeur les visuels du portfolio et la photo du designer.
+
+```html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLUNA GRAPHISME | Design & Création Visuelle</title>
+    <meta name="description" content="Studio de design haut de gamme à Lomé, Togo. Identité visuelle, communication et image de marque.">
+
+    <!-- Polices Google Fonts : Playfair Display (Titres Luxe) et Lato (Corps Moderne) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- VARIABLES & RESET --- */
+        :root {
+            --bg-dark: #0f0f0f;
+            --bg-card: #1a1a1a;
+            --silver: #C0C0C0;
+            --silver-light: #E0E0E0;
+            --silver-dim: #8a8a8a;
+            --text-main: #f5f5f5;
+            --accent: #ffffff;
+            --transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.5);
+            --font-title: 'Playfair Display', serif;
+            --font-body: 'Lato', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; transition: var(--transition); }
+        ul { list-style: none; }
+        img { display: block; max-width: 100%; height: auto; }
+
+        /* --- TYPOGRAPHIE --- */
+        h1, h2, h3, h4 {
+            font-family: var(--font-title);
+            font-weight: 400;
+            color: var(--silver-light);
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 2px;
+            background: var(--silver);
+            margin: 15px auto 0;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--silver-dim);
+            margin-bottom: 4rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        /* --- UI COMPONENTS --- */
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            border: 1px solid var(--silver);
+            color: var(--silver-light);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 0%; height: 100%;
+            background: var(--silver);
+            z-index: -1;
+            transition: var(--transition);
+        }
+
+        .btn:hover::before { width: 100%; }
+        .btn:hover { color: var(--bg-dark); }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* --- HEADER --- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 1.2rem 0;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            color: var(--silver-light);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo img {
+            height: 40px;
+            width: auto;
+            filter: grayscale(100%) brightness(200%); /* Silver effect on logo image */
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; left: 0; width: 0; height: 1px;
+            background: var(--silver);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover { color: var(--silver); }
+        .nav-links a:hover::after { width: 100%; }
+
+        .mobile-menu-btn {
+            display: none;
+            font-size: 1.5rem;
+            color: var(--silver);
+            cursor: pointer;
+        }
+
+        /* --- HERO SECTION --- */
+        #home {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('1758655638641.png');
+            background-size: cover;
+            background-position: center;
+            padding-top: 60px;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            color: var(--silver);
+            margin-bottom: 2.5rem;
+            font-weight: 300;
+        }
+
+        /* --- ABOUT SECTION --- */
+        #about {
+            padding: 8rem 0;
+            background: var(--bg-dark);
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-text h3 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--silver-light);
+        }
+
+        .about-text p {
+            margin-bottom: 1.5rem;
+            color: #ccc;
+        }
+
+        .designer-img-wrapper {
+            position: relative;
+        }
+
+        .designer-img-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -20px; left: -20px;
+            width: 100%; height: 100%;
+            border: 1px solid var(--silver);
+            z-index: -1;
+        }
+
+        .designer-img-wrapper img {
+            width: 100%;
+            filter: grayscale(80%) contrast(110%);
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* --- SERVICES SECTION --- */
+        #services {
+            padding: 6rem 0;
+            background: var(--bg-card);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: var(--bg-dark);
+            padding: 2.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: var(--transition);
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--silver);
+        }
+
+        .service-icon {
+            font-size: 2rem;
+            color: var(--silver);
+            margin-bottom: 1.5rem;
+        }
+
+        .service-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .service-card ul {
+            margin-top: 1rem;
+            padding-left: 1rem;
+        }
+
+        .service-card li {
+            margin-bottom: 0.5rem;
+            color: #aaa;
+            list-style-type: square;
+            list-style-position: inside;
+        }
+
+        /* --- PORTFOLIO SECTION --- */
+        #portfolio {
+            padding: 8rem 0;
+        }
+
+        .portfolio-filter {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-family: var(--font-body);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            color: var(--silver-light);
+            border-bottom: 1px solid var(--silver);
+        }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .portfolio-item {
+            position: relative;
+            aspect-ratio: 1/1; /* Carré parfait */
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .portfolio-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .portfolio-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: var(--transition);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .portfolio-item:hover .portfolio-overlay { opacity: 1; }
+        .portfolio-item:hover img { transform: scale(1.1); }
+
+        .portfolio-overlay h4 {
+            font-size: 1.2rem;
+            color: var(--silver-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .portfolio-overlay p {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        /* --- SOCIAL INTEGRATION --- */
+        #social {
+            padding: 6rem 0;
+            background: linear-gradient(to right, #0f0f0f, #1a1a1a);
+            text-align: center;
+        }
+
+        .social-container {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+        }
+
+        .social-card {
+            background: var(--bg-dark);
+            padding: 2rem;
+            width: 300px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: var(--transition);
+        }
+
+        .social-card:hover {
+            border-color: var(--silver);
+            transform: scale(1.02);
+        }
+
+        .social-card h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .social-card a {
+            color: var(--silver);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+
+        /* --- CONTACT SECTION --- */
+        #contact {
+            padding: 8rem 0;
+            background: var(--bg-dark);
+        }
+
+        .contact-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4rem;
+        }
+
+        .contact-info, .contact-form {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .contact-item {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--silver);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--silver);
+            border-radius: 50%;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            background: var(--bg-card);
+            border: 1px solid #333;
+            color: var(--text-main);
+            font-family: var(--font-body);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--silver);
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background: #000;
+            padding: 2rem 0;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .footer-text {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .footer-socials {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .footer-socials a {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        /* --- FLOATING WHATSAPP --- */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #25d366;
+            color: #fff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 1001;
+            transition: var(--transition);
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            background-color: #20b858;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                right: -100%;
+                width: 70%;
+                height: 100vh;
+                background: var(--bg-card);
+                flex-direction: column;
+                padding: 2rem;
+                transition: 0.4s ease;
+            }
+            
+            .nav-links.active { right: 0; }
+            .mobile-menu-btn { display: block; }
+            
+            .hero-content h1 { font-size: 2.5rem; }
+            .about-grid { grid-template-columns: 1fr; }
+            .section-title { font-size: 2rem; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <!-- Image du logo fourni -->
+                    <img src="https://z-cdn-media.chatglm.cn/files/fea99c03-adc4-4739-8909-9089b40bc6ec.jpg?auth_key=1870556322-112e6c7113d243b494d5198db984e794-0-487f67c9eb02330675c446a89d49b3fd" alt="Logo Bluna Graphisme">
+                    BLUNA GRAPHISME
+                </div>
+                <div class="nav-links" id="navLinks">
+                    <a href="#home" onclick="toggleMenu()">Accueil</a>
+                    <a href="#about" onclick="toggleMenu()">À propos</a>
+                    <a href="#services" onclick="toggleMenu()">Services</a>
+                    <a href="#portfolio" onclick="toggleMenu()">Portfolio</a>
+                    <a href="#contact" onclick="toggleMenu()">Contact</a>
+                </div>
+                <div class="mobile-menu-btn" onclick="toggleMenu()">&#9776;</div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Home / Hero -->
+    <section id="home">
+        <div class="container hero-content">
+            <h1>Luxe & Créativité <br> <span style="color: var(--silver);">Visuelle</span></h1>
+            <p>Studio de design haut de gamme. Identité, communication et image de marque.</p>
+            <a href="#contact" class="btn">Démarrer un projet</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-text">
+                    <h2 class="section-title" style="text-align: left; left: 0; transform: none;">À Propos</h2>
+                    <p class="subtitle" style="text-align: left; margin-left: 0;">L'Excellence Graphique</p>
+                    <p>Bienvenue chez <strong>BLUNA GRAPHISME</strong>. Nous sommes un studio dédié à l'élaboration d'identités visuelles percutantes et élégantes pour les marques ambitieuses.</p>
+                    <p>Notre vision est simple : transformer vos idées en réalités visuelles sophistiquées. La rigueur, l'élégance et l'efficacité sont les piliers de chaque création.</p>
+                    <p>Basé à Lomé, Togo, nous servons une clientèle premium allant des entrepreneurs aux institutions.</p>
+                    <br>
+                    <a href="#portfolio" class="btn">Voir nos créations</a>
+                </div>
+                <div class="designer-img-wrapper">
+                    <!-- Photo du Designer fournie -->
+                    <img src="1758644818623.png" alt="Le Designer Bluna">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services">
+        <div class="container">
+            <h2 class="section-title">Nos Services</h2>
+            <p class="subtitle">Solutions créatives sur mesure</p>
+            
+            <div class="services-grid">
+                <!-- Service 1 -->
+                <div class="service-card">
+                    <div class="service-icon">&#9679;</div> <!-- Simple geometric shape for minimalism -->
+                    <h3>Design Graphique</h3>
+                    <p>Créations esthétiques pour captiver votre audience.</p>
+                    <ul>
+                        <li>Affiches professionnelles</li>
+                        <li>Flyers & brochures</li>
+                        <li>Visuels réseaux sociaux</li>
+                        <li>Bannières publicitaires</li>
+                    </ul>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="service-card">
+                    <div class="service-icon">&#9632;</div>
+                    <h3>Identité Visuelle</h3>
+                    <p>Construire une marque forte et mémorable.</p>
+                    <ul>
+                        <li>Création de logos</li>
+                        <li>Chartes graphiques</li>
+                        <li>Image de marque complète</li>
+                        <li>Refonte d'identité</li>
+                    </ul>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="service-card">
+                    <div class="service-icon">&#9650;</div>
+                    <h3>Communication</h3>
+                    <p>Supports visuels stratégiques pour vos événements.</p>
+                    <ul>
+                        <li>Design événementiel</li>
+                        <li>Supports institutionnels</li>
+                        <li>Présentations pro</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section id="portfolio">
+        <div class="container">
+            <h2 class="section-title">Portfolio</h2>
+            <p class="subtitle">Nos réalisations récentes</p>
+
+            <!-- Gallery Grid -->
+            <div class="portfolio-grid">
+                
+                <!-- Item 1: Artistic Text (Branding) -->
+                <div class="portfolio-item">
+                    <img src="https://z-cdn-media.chatglm.cn/files/1e6dba7a-b235-4666-9ef7-962a1b8b2490.png?auth_key=1870556322-cd19280ad94543f8b208b5d7ab891004-0-e68708e5394785c00114fff763224113" alt="Design Artistique Gloria">
+                    <div class="portfolio-overlay">
+                        <h4>Gloria! Art</h4>
+                        <p>Typographie & Design</p>
+                    </div>
+                </div>
+
+                <!-- Item 2: Migration (Event/Social) -->
+                <div class="portfolio-item">
+                    <img src="https://z-cdn-media.chatglm.cn/files/ccdb6f94-94bb-4ad9-a644-268b70fad618.png?auth_key=1870556322-b0cf6787a51648a0b8c47a88b53b5bb8-0-0d61dd7077467feda809970f5ee48de2" alt="Journée Internationale des Migrants">
+                    <div class="portfolio-overlay">
+                        <h4>Journée Internationale des Migrants</h4>
+                        <p>Affiche Événementielle</p>
+                    </div>
+                </div>
+
+                <!-- Item 3: SAE Party (Flyer) -->
+                <div class="portfolio-item">
+                    <img src="https://z-cdn-media.chatglm.cn/files/c44706ea-ac0c-4774-8c77-233512ae8e8f.png?auth_key=1870556322-fa339462a9b843c28d07bfc04ef85866-0-c83a2ba2c658df1d23142b86716d21a6" alt="FLWO Party">
+                    <div class="portfolio-overlay">
+                        <h4>FLWO Party</h4>
+                        <p>Flyer Soirée</p>
+                    </div>
+                </div>
+
+                <!-- Item 4: Oxygène Fitness (Promo) -->
+                <div class="portfolio-item">
+                    <img src="https://z-cdn-media.chatglm.cn/files/7d00143f-d3b9-4b43-aa2e-6d6653b2d050.png?auth_key=1870556322-47943732e20e40dc9e89bad92ae38393-0-ebdfef420c0edcb547762b14841f0a14" alt="Promo Saint Valentin Oxygène">
+                    <div class="portfolio-overlay">
+                        <h4>Promo Saint Valentin</h4>
+                        <p>Publicité Fitness</p>
+                    </div>
+                </div>
+
+                <!-- Item 5: Excellente Rentree (Education) -->
+                <div class="portfolio-item">
+                    <img src="https://z-cdn-media.chatglm.cn/files/b92d5cf6-7450-4fad-8392-c91e1010e096.png?auth_key=1870556322-4f8ccd9a4acf497eb9a168a8c9ad4b74-0-a6f2a13d8594dd044b2faca71be8c6a1" alt="Excellente Rentrée Scolaire">
+                    <div class="portfolio-overlay">
+                        <h4>Excellente Rentrée</h4>
+                        <p>Communication Éducative</p>
+                    </div>
+                </div>
+
+                <!-- Item 6: Fibroid Tea (Product) -->
+                <div class="portfolio-item">
+                    <img src="https://z-cdn-media.chatglm.cn/files/5a1f3f4e-261a-40e4-9a8c-07a28b366b87.jpg?auth_key=1870556322-e66f15ccf09e4e87bdb6011b501ea1ba-0-ff6ccb5aadfdfde01767ecdde3c16bac" alt="Fibroid Tea Packaging">
+                    <div class="portfolio-overlay">
+                        <h4>Fibroid Tea</h4>
+                        <p>Design Produit & Packaging</p>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="https://www.instagram.com/bluna_k_13" target="_blank" class="btn">Voir plus sur Instagram</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Section (Instagram/TikTok) -->
+    <section id="social">
+        <div class="container">
+            <h2 class="section-title">Suivez-nous</h2>
+            <p class="subtitle">BLUNA GRAPHISME en action</p>
+            
+            <div class="social-container">
+                <div class="social-card">
+                    <h4>Instagram</h4>
+                    <p>Découvrez notre galerie quotidienne et nos coulisses créatifs.</p>
+                    <a href="https://www.instagram.com/bluna_k_13" target="_blank">@bluna_k_13</a>
+                </div>
+                <div class="social-card">
+                    <h4>TikTok</h4>
+                    <p>Tutoriels, processus de design et actualités du studio.</p>
+                    <a href="https://www.tiktok.com/@blunagraphisme" target="_blank">@blunagraphisme</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="container">
+            <h2 class="section-title">Contact</h2>
+            <p class="subtitle">Parlons de votre projet</p>
+
+            <div class="contact-wrapper">
+                <div class="contact-info">
+                    <p style="margin-bottom: 2rem; color: #ccc;">Prêt à élevé votre marque ? Contactez-nous pour une consultation personnalisée.</p>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">&#9742;</div>
+                        <div>
+                            <h4>Téléphone / WhatsApp</h4>
+                            <p>+228 71 99 81 55</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">&#9992;</div>
+                        <div>
+                            <h4>Localisation</h4>
+                            <p>Togo – Lomé</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">&#9993;</div>
+                        <div>
+                            <h4>Email</h4>
+                            <p>contact@blunagraphisme.com</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-form">
+                    <form onsubmit="event.preventDefault(); showSuccessMessage(this);">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Votre Nom" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" class="form-control" placeholder="Votre Email" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea class="form-control" rows="5" placeholder="Détails du projet..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn">Envoyer</button>
+                        <div id="form-success" style="display:none; color: #25d366; margin-top: 10px;">Message envoyé avec succès !</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-text">
+                &copy; 2025 BLUNA GRAPHISME. Tous droits réservés.
+            </div>
+            <div class="footer-socials">
+                <a href="https://www.instagram.com/bluna_k_13" target="_blank">Instagram</a>
+                <a href="https://www.tiktok.com/@blunagraphisme" target="_blank">TikTok</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/22871998155" class="whatsapp-float" target="_blank" title="Contactez-nous sur WhatsApp">
+        <!-- SVG WhatsApp Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" fill="#FFF"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+    </a>
+
+    <!-- Scripts -->
+    <script>
+        // Menu Mobile Toggle
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+
+        // Simple Form Submission Feedback (No alerts)
+        function showSuccessMessage(form) {
+            const btn = form.querySelector('button');
+            const successMsg = document.getElementById('form-success');
+            
+            // Simulate loading
+            const originalText = btn.innerText;
+            btn.innerText = 'Envoi...';
+            btn.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.opacity = '1';
+                successMsg.style.display = 'block';
+                form.reset();
+                
+                // Hide message after 3 seconds
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 3000);
+            }, 1000);
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const nav = document.querySelector('nav');
+            const navLinks = document.getElementById('navLinks');
+            const isClickInside = nav.contains(event.target);
+            
+            if (!isClickInside && navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+            }
+        });
+
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.style.boxShadow = '0 2px 10px rgba(0,0,0,0.5)';
+                header.style.background = 'rgba(15, 15, 15, 0.98)';
+            } else {
+                header.style.boxShadow = 'none';
+                header.style.background = 'rgba(15, 15, 15, 0.95)';
+            }
+        });
+    </script>
+</body>
+</html>
+```
