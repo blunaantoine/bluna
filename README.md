@@ -1,28 +1,56 @@
-# BLUNA Graphisme — portfolio
+# BLUNA Graphisme — portfolio & messages clients
 
-Portfolio d'Antoine ANANI (web design, identité visuelle, design graphique, photo et vidéo). Lomé, Togo.
+Application web d'Antoine ANANI (BLUNA Graphisme, Lomé) : portfolio animé, fiches projet avec galerie,
+formulaire de contact relié aux projets, et espace admin avec notifications.
 
-Site statique, sans étape de build : HTML, CSS et JavaScript.
+## Ce que fait l'application
 
-## Modifier le contenu
+**Côté client**
+- Accueil animé : collage de réalisations qui réagit à la souris, bandeau défilant, liste des projets avec aperçu au survol.
+- Page **Travaux** filtrable (Identité & logos, Sites & applications, Photographie).
+- Fiche projet : galerie, visionneuse plein écran (flèches, clavier, glisser sur mobile), projet suivant.
+- Bouton **« Un projet similaire ? »** : ouvre le contact avec le projet joint. Le message arrive chez Antoine avec ce projet.
 
-Tout le contenu (projets, services, contacts) se trouve dans **`assets/js/data.js`**.
+**Côté Antoine (`/admin`)**
+- **Messages** : boîte de réception actualisée toutes les 15 s, alerte sonore, notification du navigateur, compteur dans l'onglet.
+  Chaque message affiche le projet de référence et propose « Répondre sur WhatsApp » avec un message pré-rempli.
+- **Projets** : publier ou masquer, mettre à la une, réordonner, modifier les textes, **ajouter des images** (redimensionnées automatiquement), créer ou supprimer un projet.
+- Statistiques : vues par projet et nombre de demandes « similaire ».
+- Notifications hors du site, au choix : **Telegram** (instantané sur le téléphone) et/ou **e-mail**.
 
-- **Ajouter un projet** : copier un bloc `{ slug: ..., titre: ... }` dans `projets` et l'adapter.
-- **Mettre une vraie image** : déposer le fichier dans `assets/img/projets/` puis renseigner
-  `image: "assets/img/projets/nom-du-fichier.jpg"`. Sans image, le site dessine une couverture
-  avec les couleurs de `palette: [fond, texte]`.
-- **Lien vers un site en ligne** : renseigner `lien: "https://..."` ; le bouton de la fiche projet devient « Voir le site en ligne ».
-- Chaque projet a un lien direct partageable : `https://.../#projet-<slug>`.
-
-## Tester en local
+## Installation
 
 ```bash
-python3 -m http.server 8080
+npm install
+cp .env.example .env      # puis remplissez ADMIN_PASSWORD et SESSION_SECRET
+npm run setup             # crée la base et ajoute les 18 projets
+npm run dev               # http://localhost:3000
 ```
 
-puis ouvrir http://localhost:8080.
+## Mise en production (VPS)
 
-## Mettre en ligne
+```bash
+npm install
+npm run setup
+npm run build
+PORT=3000 npm start
+```
 
-GitHub → Settings → Pages → *Deploy from a branch* → `main` / `(root)`.
+Gardez le processus actif avec `pm2` ou un service systemd, derrière Caddy ou Nginx pour le HTTPS.
+La base (`dev.db`) et les images ajoutées depuis l'admin (`data/uploads`) sont des fichiers : sauvegardez-les.
+
+> Vercel ou Netlify ne gardent pas les fichiers écrits par l'application. Pour y héberger le site,
+> il faut une base externe (Turso, Neon…) et un stockage d'images externe. Un petit VPS est plus simple.
+
+## Notifications
+
+Dans `.env` :
+- **Telegram** : `TELEGRAM_BOT_TOKEN` et `TELEGRAM_CHAT_ID` (voir les explications dans `.env.example`).
+- **E-mail** : `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `NOTIFY_EMAIL`. Avec Gmail, utilisez un « mot de passe d'application ».
+
+Sans ces réglages, les messages restent enregistrés et visibles dans `/admin`.
+
+## Contenu
+
+- Les 18 projets de départ sont dans `src/content/projects.ts`. `npm run db:seed` ne remplace jamais un projet modifié dans l'admin.
+- Les images d'origine viennent du dossier Drive « Portfolio - Antoine ANANI » et de vraies captures des applications.

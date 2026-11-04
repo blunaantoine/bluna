@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  client      String   @default("")
+  category    String
+  year        Int
+  summary     String
+  description String
+  /// Listes stockées en JSON (SQLite n'a pas de type tableau)
+  tags        String   @default("[]")
+  stack       String   @default("[]")
+  images      String   @default("[]")
+  cover       String
+  coverBg     String   @default("#151517")
+  link        String   @default("")
+  featured    Boolean  @default(false)
+  published   Boolean  @default(true)
+  order       Int      @default(0)
+  views       Int      @default(0)
+  inquiries   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String   @default("")
+  email       String   @default("")
+  company     String   @default("")
+  services    String   @default("[]")
+  budget      String   @default("")
+  deadline    String   @default("")
+  body        String
+  projectSlug String?
+  status      String   @default("nouveau") // nouveau | lu | repondu | archive
+  createdAt   DateTime @default(now())
+
+  @@index([status, createdAt])
+}
