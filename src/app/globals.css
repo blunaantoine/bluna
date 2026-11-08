@@ -329,3 +329,13 @@ input[type="range"] { flex: 1 1 200px; min-width: 0; accent-color: var(--silver-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
 }
+
+/* Pastilles de statut (factures) */
+.pill { display: inline-block; padding: .35rem .65rem; border-radius: 999px; font: 500 .66rem/1 var(--f-mono), monospace; letter-spacing: .08em; text-transform: uppercase; border: 1px solid var(--line); color: var(--silver-lo); white-space: nowrap; }
+.pill.s-envoyee { color: #ffd27a; border-color: rgba(255,210,122,.45); }
+.pill.s-partielle { color: #9fd3ff; border-color: rgba(159,211,255,.45); }
+.pill.s-payee { color: var(--ink); background: var(--live); border-color: var(--live); }
+.pill.s-retard { color: var(--ink); background: var(--alert); border-color: var(--alert); }
+.pill.s-annulee { text-decoration: line-through; }
+.pill.s-brouillon { border-style: dashed; }
+

@@ -40,6 +40,13 @@ async function email(subject: string, text: string, replyTo?: string) {
   await t.sendMail({ from: `BLUNA Portfolio <${SMTP_USER}>`, to: NOTIFY_EMAIL, subject, text, replyTo: replyTo || undefined });
 }
 
+/** Envoie une alerte libre (Telegram + e-mail). N'échoue jamais. */
+export async function sendAlert(subject: string, text: string, replyTo?: string) {
+  const body = `${subject}\n\n${text}`;
+  const results = await Promise.allSettled([telegram(body), email(subject, text, replyTo)]);
+  results.forEach((r) => r.status === "rejected" && console.error("[notification]", r.reason));
+}
+
 /** Prévient Antoine par tous les canaux configurés. N'échoue jamais : le message reste enregistré dans l'admin. */
 export async function notifyNewMessage(ctx: Ctx) {
   const text = summary(ctx);

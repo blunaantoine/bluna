@@ -11,6 +11,7 @@ export default function AdminNav({ unread }: { unread?: number }) {
       <Link href="/admin" className="brand"><span className="brand-mark">B</span><span className="brand-text">BLUNA <em>Admin</em></span></Link>
       <nav className="admin-tabs">
         <Link href="/admin" aria-current={path === "/admin" ? "page" : undefined}>Messages{unread ? <b className="badge">{unread}</b> : null}</Link>
+        <Link href="/admin/factures" aria-current={path.startsWith("/admin/factures") ? "page" : undefined}>Factures</Link>
         <Link href="/admin/projets" aria-current={path.startsWith("/admin/projets") ? "page" : undefined}>Projets</Link>
         <Link href="/" target="_blank">Voir le site ↗</Link>
       </nav>

@@ -48,3 +48,57 @@ model Message {
 
   @@index([status, createdAt])
 }
+
+/// Client facturé. Son lien personnel (/espace/<token>) liste toutes ses factures.
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  company   String    @default("")
+  phone     String    @default("")
+  email     String    @default("")
+  token     String    @unique
+  createdAt DateTime  @default(now())
+  invoices  Invoice[]
+}
+
+model Invoice {
+  id          String    @id @default(cuid())
+  number      String    @unique
+  token       String    @unique
+  clientId    String
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title       String
+  /// Lignes en JSON : [{ label, qty, unitPrice }]
+  items       String    @default("[]")
+  discount    Int       @default(0)
+  total       Int
+  amountPaid  Int       @default(0)
+  allowDeposit Boolean  @default(false)
+  status      String    @default("envoyee") // brouillon | envoyee | partielle | payee | annulee
+  notes       String    @default("")
+  projectSlug String?
+  issuedAt    DateTime  @default(now())
+  dueAt       DateTime?
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  payments    Payment[]
+
+  @@index([clientId, status])
+}
+
+model Payment {
+  id            String    @id @default(cuid())
+  invoiceId     String
+  invoice       Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount        Int
+  method        String    // fedapay | mobile | especes | virement
+  status        String    @default("en_attente") // en_attente | valide | refuse | annule
+  provider      String    @default("")
+  transactionId String?   @unique
+  reference     String    @default("")
+  payerName     String    @default("")
+  payerPhone    String    @default("")
+  createdAt     DateTime  @default(now())
+  confirmedAt   DateTime?
+}

@@ -18,6 +18,15 @@ formulaire de contact relié aux projets, et espace admin avec notifications.
 - Statistiques : vues par projet et nombre de demandes « similaire ».
 - Notifications hors du site, au choix : **Telegram** (instantané sur le téléphone) et/ou **e-mail**.
 
+**Factures et paiement (`/admin/factures`)**
+- Créez un client et une facture ligne par ligne (quantité, prix, remise, échéance, acompte autorisé ou non).
+- Envoyez sur WhatsApp, en un clic, le **lien de la facture** ou le **lien de l'espace client** (toutes ses factures).
+- Le client ouvre le lien, choisit sa facture, touche « Payer maintenant » : le panneau de paiement s'ouvre.
+  - **Paiement en ligne FedaPay** : T-Money, Flooz, Visa, Mastercard. La facture passe en « Payée » toute seule.
+  - **Transfert manuel** : le client envoie l'argent à vos numéros et donne la référence du SMS ; vous validez d'un clic.
+- Vous êtes prévenu (Telegram / e-mail) à chaque paiement. Encaissement manuel possible (espèces, virement).
+- La facture se télécharge en PDF depuis le téléphone du client.
+
 ## Installation
 
 ```bash
@@ -49,6 +58,16 @@ Dans `.env` :
 - **E-mail** : `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `NOTIFY_EMAIL`. Avec Gmail, utilisez un « mot de passe d'application ».
 
 Sans ces réglages, les messages restent enregistrés et visibles dans `/admin`.
+
+## Activer le paiement en ligne (FedaPay)
+
+1. Créez un compte marchand sur fedapay.com et faites valider votre compte (pièce d'identité, numéro de retrait).
+2. Dans `.env` : `FEDAPAY_SECRET_KEY` (commencez par la clé `sk_sandbox_...` et `FEDAPAY_ENV="sandbox"`).
+3. Dans FedaPay > Webhooks, ajoutez `https://votre-domaine/api/webhooks/fedapay`.
+4. Faites un paiement test, puis passez à la clé live et `FEDAPAY_ENV="live"`.
+
+Sans clé FedaPay, seul le transfert manuel est proposé (numéros `PAY_TMONEY_NUMBER` et `PAY_FLOOZ_NUMBER`).
+Le statut d'un paiement est toujours revérifié auprès de FedaPay : ni un faux lien de retour, ni un faux webhook ne peuvent valider une facture.
 
 ## Contenu
 
