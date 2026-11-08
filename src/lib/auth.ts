@@ -1,5 +1,5 @@
 // Session admin : cookie signé (HMAC-SHA256), compatible middleware (Web Crypto).
-export const SESSION_COOKIE = "bluna_admin";
+export const SESSION_COOKIE = "oqui_admin";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 jours
 
 const enc = new TextEncoder();

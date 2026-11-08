@@ -62,7 +62,7 @@ export default function Inbox() {
       }
       known.current = new Set(d.messages.map((m) => m.id));
       setMsgs(d.messages);
-      document.title = d.unread ? `(${d.unread}) Messages · BLUNA` : "Messages · BLUNA";
+      document.title = d.unread ? `(${d.unread}) Messages · OQUI` : "Messages · OQUI";
     } catch { setError("Connexion perdue, nouvelle tentative dans 15 s."); }
   }, []);
 
@@ -167,7 +167,7 @@ export default function Inbox() {
 
                 <div className="hero-actions">
                   {current.phone && <a className="btn" target="_blank" rel="noopener" onClick={() => setStatus(current.id, "repondu")} href={`https://wa.me/${phoneDigits(current.phone)}?text=${encodeURIComponent(reply(current))}`}>Répondre sur WhatsApp</a>}
-                  {current.email && <a className="btn btn-ghost" onClick={() => setStatus(current.id, "repondu")} href={`mailto:${current.email}?subject=${encodeURIComponent("Votre projet avec BLUNA Graphisme")}&body=${encodeURIComponent(reply(current))}`}>Répondre par e-mail</a>}
+                  {current.email && <a className="btn btn-ghost" onClick={() => setStatus(current.id, "repondu")} href={`mailto:${current.email}?subject=${encodeURIComponent("Votre projet avec OQUI")}&body=${encodeURIComponent(reply(current))}`}>Répondre par e-mail</a>}
                   {current.status !== "repondu" && <button className="btn btn-ghost" onClick={() => setStatus(current.id, "repondu")}>Marquer comme répondu</button>}
                   <button className="btn btn-ghost" onClick={() => setStatus(current.id, "archive")}>Archiver</button>
                 </div>

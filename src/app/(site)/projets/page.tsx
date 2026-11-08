@@ -4,7 +4,7 @@ import ProjectGrid from "@/components/ProjectGrid";
 import { getProjects } from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Travaux", description: "Identités de marque, sites et applications, photographie : les réalisations de BLUNA Graphisme." };
+export const metadata: Metadata = { title: "Travaux", description: "Identités de marque, sites et applications, photographie : les réalisations d'OQUI." };
 
 export default async function ProjectsPage() {
   const projects = await getProjects();

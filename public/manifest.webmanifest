@@ -1,7 +1,7 @@
 {
-  "name": "BLUNA Graphisme",
-  "short_name": "BLUNA",
-  "description": "Portfolio et messages clients de BLUNA Graphisme",
+  "name": "OQUI",
+  "short_name": "OQUI",
+  "description": "Portfolio et messages clients d'OQUI",
   "start_url": "/admin",
   "display": "standalone",
   "background_color": "#0d0d0e",

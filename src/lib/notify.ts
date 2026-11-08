@@ -37,7 +37,7 @@ async function email(subject: string, text: string, replyTo?: string) {
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !NOTIFY_EMAIL) return;
   const port = Number(SMTP_PORT || 465);
   const t = nodemailer.createTransport({ host: SMTP_HOST, port, secure: port === 465, auth: { user: SMTP_USER, pass: SMTP_PASS } });
-  await t.sendMail({ from: `BLUNA Portfolio <${SMTP_USER}>`, to: NOTIFY_EMAIL, subject, text, replyTo: replyTo || undefined });
+  await t.sendMail({ from: `OQUI <${SMTP_USER}>`, to: NOTIFY_EMAIL, subject, text, replyTo: replyTo || undefined });
 }
 
 /** Envoie une alerte libre (Telegram + e-mail). N'échoue jamais. */

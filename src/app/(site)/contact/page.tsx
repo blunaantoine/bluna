@@ -5,7 +5,7 @@ import { fitFor } from "@/lib/view";
 import { profile } from "@/content/site";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Contact", description: "Décrivez votre projet à Antoine ANANI, BLUNA Graphisme, Lomé." };
+export const metadata: Metadata = { title: "Contact", description: "Décrivez votre projet à Antoine ANANI, OQUI, Lomé." };
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ projet?: string }> }) {
   const { projet } = await searchParams;

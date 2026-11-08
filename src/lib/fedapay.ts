@@ -43,7 +43,7 @@ export async function createCheckout(opts: {
       custom_metadata: { invoice: opts.invoiceNumber },
       customer: {
         firstname: firstname || "Client",
-        lastname: rest.join(" ") || "BLUNA",
+        lastname: rest.join(" ") || "OQUI",
         ...(opts.customer.email ? { email: opts.customer.email } : {}),
         ...(local.length === 8 ? { phone_number: { number: local, country: "tg" } } : {}),
       },

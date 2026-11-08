@@ -1,8 +1,8 @@
 {
-  "name": "bluna-portfolio",
+  "name": "oqui-portfolio",
   "version": "2.0.0",
   "private": true,
-  "description": "Portfolio et application de contact de BLUNA Graphisme — Antoine ANANI",
+  "description": "Portfolio et application de contact d'OQUI — Antoine ANANI",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "prisma generate && next build",

@@ -51,8 +51,8 @@ export default function BillingAdmin({ projects }: { projects: { slug: string; t
   const shown = (invoices ?? []).filter((i) => filter === "toutes" ? true : filter === "ouvertes" ? i.status === "envoyee" || i.status === "partielle" || i.status === "brouillon" : i.status === filter);
 
   const copy = async (txt: string, msg: string) => { try { await navigator.clipboard.writeText(txt); setToast(msg); } catch { setToast(txt); } };
-  const invText = (i: Invoice) => `Bonjour ${i.client.name.split(" ")[0]}, voici votre facture ${i.number} (${i.title}) d'un montant de ${fcfa(i.total - i.amountPaid)}. Vous pouvez la consulter et la payer en ligne (T-Money, Flooz, carte) ici : ${origin}/facture/${i.token}\n\nMerci ! Antoine — BLUNA Graphisme`;
-  const spaceText = (c: Client) => `Bonjour ${c.name.split(" ")[0]}, voici votre espace client BLUNA Graphisme. Vous y trouverez toutes vos factures et pourrez les payer en ligne : ${origin}/espace/${c.token}`;
+  const invText = (i: Invoice) => `Bonjour ${i.client.name.split(" ")[0]}, voici votre facture ${i.number} (${i.title}) d'un montant de ${fcfa(i.total - i.amountPaid)}. Vous pouvez la consulter et la payer en ligne (T-Money, Flooz, carte) ici : ${origin}/facture/${i.token}\n\nMerci ! Antoine — OQUI`;
+  const spaceText = (c: Client) => `Bonjour ${c.name.split(" ")[0]}, voici votre espace client OQUI. Vous y trouverez toutes vos factures et pourrez les payer en ligne : ${origin}/espace/${c.token}`;
 
   async function act(url: string, body: unknown, ok: string, method = "PATCH") {
     const r = await api(url, method, body);

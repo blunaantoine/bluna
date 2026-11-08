@@ -1,6 +1,6 @@
-# BLUNA Graphisme — portfolio & messages clients
+# OQUI — portfolio, messages clients et factures
 
-Application web d'Antoine ANANI (BLUNA Graphisme, Lomé) : portfolio animé, fiches projet avec galerie,
+Application web d'Antoine ANANI (OQUI, Lomé — oquitogo.com) : portfolio animé, fiches projet avec galerie,
 formulaire de contact relié aux projets, et espace admin avec notifications.
 
 ## Ce que fait l'application

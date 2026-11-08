@@ -1,10 +1,10 @@
 export const profile = {
   name: "Antoine ANANI",
-  studio: "BLUNA Graphisme",
+  studio: "OQUI",
   city: "Lomé, Togo",
   whatsapp: "22871998155",
   phone: "+228 71 99 81 55",
-  email: "contact@blunagraphisme.com",
+  email: "contact@oquitogo.com",
   instagram: { label: "@bluna_k_13", url: "https://www.instagram.com/bluna_k_13" },
   tiktok: { label: "@blunagraphisme", url: "https://www.tiktok.com/@blunagraphisme" },
   github: { label: "blunaantoine", url: "https://github.com/blunaantoine" },

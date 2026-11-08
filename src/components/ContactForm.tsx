@@ -9,7 +9,7 @@ import { budgets, contactServices, deadlines, profile } from "@/content/site";
 type Ref = { slug: string; title: string; cover: string; coverBg: string; category: string; summary: string; contain: boolean } | null;
 type Errors = Partial<Record<"name" | "body" | "phone" | "email" | "form", string>>;
 
-const DRAFT = "bluna-brouillon";
+const DRAFT = "oqui-brouillon";
 const serviceFor = (cat?: string) => (cat === "web" ? ["web"] : cat === "photo" ? ["photo"] : cat === "identite" ? ["identite"] : []);
 
 export default function ContactForm({ reference }: { reference: Ref }) {

@@ -45,7 +45,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
         <article className="paper" aria-label={`Facture ${inv.number}`}>
           <header className="paper-head">
             <div>
-              <span className="paper-brand">BLUNA <em>Graphisme</em></span>
+              <span className="paper-brand">OQUI</span>
               <p>{profile.name}<br />{profile.city}<br />{profile.phone}<br />{profile.email}</p>
             </div>
             <div className="paper-meta">

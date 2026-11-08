@@ -16,10 +16,10 @@ export const parseLines = (s: string): Line[] => {
 
 export const linesTotal = (lines: Line[]) => lines.reduce((a, l) => a + Math.round(l.qty * l.unitPrice), 0);
 
-/** Numéro lisible et unique : BLU-2026-001, BLU-2026-002… */
+/** Numéro lisible et unique : OQUI-2026-001, OQUI-2026-002… */
 export async function nextNumber() {
   const year = new Date().getFullYear();
-  const prefix = `BLU-${year}-`;
+  const prefix = `OQUI-${year}-`;
   const last = await db.invoice.findFirst({ where: { number: { startsWith: prefix } }, orderBy: { number: "desc" }, select: { number: true } });
   const n = last ? parseInt(last.number.slice(prefix.length), 10) + 1 : 1;
   return `${prefix}${String(n).padStart(3, "0")}`;
@@ -63,7 +63,8 @@ export function toPublic(inv: Invoice & { client: Client; payments: Payment[] })
     overdue: isOverdue(inv),
     client: { name: inv.client.name, company: inv.client.company, token: inv.client.token },
     payments: inv.payments
-      .filter((p) => p.status === "valide" || p.status === "en_attente")
+      // Un paiement en ligne abandonné reste « en attente » chez nous : on ne montre que les transferts déclarés.
+      .filter((p) => p.status === "valide" || (p.status === "en_attente" && p.method === "mobile"))
       .map((p) => ({ id: p.id, amount: p.amount, method: p.method, status: p.status, createdAt: p.createdAt, confirmedAt: p.confirmedAt, reference: p.reference })),
   };
 }

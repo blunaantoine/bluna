@@ -26,9 +26,9 @@ export default function Header() {
   return (
     <header className={`topbar${scrolled ? " scrolled" : ""}`}>
       <div className="wrap topbar-inner">
-        <Link href="/" className="brand" aria-label="BLUNA Graphisme, accueil">
-          <span className="brand-mark">B</span>
-          <span className="brand-text">BLUNA <em>Graphisme</em></span>
+        <Link href="/" className="brand" aria-label="OQUI, accueil">
+          <span className="brand-mark">O</span>
+          <span className="brand-text">OQUI</span>
         </Link>
         <nav className={`nav${open ? " open" : ""}`} id="nav" aria-label="Navigation principale">
           {links.map((l) => (

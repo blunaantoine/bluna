@@ -16,7 +16,7 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await getProject((await params).slug);
   if (!p) return { title: "Projet introuvable" };
-  return { title: p.title, description: p.summary, openGraph: { title: `${p.title} · BLUNA Graphisme`, description: p.summary, images: [p.cover] } };
+  return { title: p.title, description: p.summary, openGraph: { title: `${p.title} · OQUI`, description: p.summary, images: [p.cover] } };
 }
 
 export default async function ProjectPage({ params }: Props) {

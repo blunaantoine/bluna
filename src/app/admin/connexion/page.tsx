@@ -19,7 +19,7 @@ function Login() {
   return (
     <main className="admin-login">
       <form onSubmit={submit} className="admin-login-card">
-        <span className="brand-mark" style={{ width: 48, height: 48, fontSize: "1.3rem" }}>B</span>
+        <span className="brand-mark" style={{ width: 48, height: 48, fontSize: "1.3rem" }}>O</span>
         <h1 className="display" style={{ fontSize: "2rem" }}>Espace admin</h1>
         <p className="mono">Messages clients et gestion des projets</p>
         <label className={`field${error ? " invalid" : ""}`} style={{ width: "100%" }}>

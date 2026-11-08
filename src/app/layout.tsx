@@ -7,10 +7,10 @@ const body = Lato({ subsets: ["latin"], weight: ["300", "400", "700"], variable:
 const mono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--f-mono", display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.SITE_URL || "http://localhost:3000"),
-  title: { default: "BLUNA Graphisme — Antoine ANANI", template: "%s · BLUNA Graphisme" },
+  metadataBase: new URL(process.env.SITE_URL || "https://oquitogo.com"),
+  title: { default: "OQUI — Antoine ANANI, design & web à Lomé", template: "%s · OQUI" },
   description: "Antoine ANANI, web designer et graphiste à Lomé. Identité visuelle, sites et applications web, photographie.",
-  openGraph: { type: "website", locale: "fr_FR", siteName: "BLUNA Graphisme", images: ["/img/antoine-studio.webp"] },
+  openGraph: { type: "website", locale: "fr_FR", siteName: "OQUI", images: ["/img/antoine-studio.webp"] },
   manifest: "/manifest.webmanifest",
 };
 
