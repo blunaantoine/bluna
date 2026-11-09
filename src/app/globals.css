@@ -342,3 +342,67 @@ input[type="range"] { flex: 1 1 200px; min-width: 0; accent-color: var(--silver-
 
 /* Accès discret à l'admin (nom OQUI dans « À propos ») : identique au texte autour */
 .secret-link, .secret-link:hover, .secret-link:focus { color: inherit; text-decoration: none; cursor: text; }
+
+/* Offres de suivi (page /suivi) */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.suivi-hero { display: grid; gap: 1.2rem; padding-block: clamp(2rem, 5vw, 4rem) 1rem; max-width: 1280px; }
+.suivi-hero h1 { font-size: clamp(2.6rem, 7vw, 5.6rem); line-height: 1; max-width: 16ch; }
+.suivi-offers { display: grid; gap: 1.8rem; padding-block: 1.5rem clamp(4rem, 8vw, 6rem); }
+.billing-toggle { justify-self: start; display: inline-flex; gap: .3rem; padding: .3rem; border-radius: 999px; border: 1px solid var(--line); background: var(--graphite); }
+.billing-toggle button { padding: .6rem 1.1rem; border-radius: 999px; font-size: var(--s-sm); color: var(--silver-lo); display: inline-flex; gap: .5rem; align-items: baseline; transition: background .25s, color .25s; }
+.billing-toggle button small { font: 500 .65rem/1 var(--f-mono), monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--live); }
+.billing-toggle button[aria-pressed="true"] { background: var(--silver-hi); color: var(--ink); }
+.billing-toggle button[aria-pressed="true"] small { color: #1f8a55; }
+.offers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2rem; align-items: stretch; }
+@media (max-width: 1060px) { .offers { grid-template-columns: 1fr; max-width: 680px; } }
+.offer { display: grid; grid-template-rows: auto 1fr auto auto; gap: 1.3rem; padding: clamp(1.4rem, 3vw, 2rem); border-radius: 16px; border: 1px solid var(--line); background: var(--graphite); min-width: 0; }
+.offer.is-reco { border-color: var(--silver); background: linear-gradient(170deg, var(--panel-2), var(--graphite) 55%); box-shadow: 0 30px 70px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.04) inset; }
+.offer header { display: grid; gap: .5rem; }
+.offer .reco { margin-left: .7rem; padding: .25rem .6rem; border-radius: 999px; background: var(--silver-hi); color: var(--ink); font-size: .62rem; }
+.offer h2 { font-size: clamp(1.8rem, 3vw, 2.3rem); line-height: 1.05; }
+.offer-tag { color: var(--silver-lo); font-size: var(--s-sm); font-style: italic; }
+.offer-price { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; margin-top: .4rem; }
+.offer-price strong { font-size: clamp(2.4rem, 4.4vw, 3.2rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.offer-price span { color: var(--silver-lo); font-size: var(--s-sm); }
+.offer-save { font-size: var(--s-xs); color: var(--live); }
+.offer-lists { display: grid; gap: 1.2rem; align-content: start; }
+.offer-lists h3 { font: 500 var(--s-xs)/1 var(--f-mono), monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--silver-lo); margin-bottom: .7rem; }
+.ticks, .crosses { list-style: none; display: grid; gap: .55rem; font-size: var(--s-sm); }
+.ticks li, .crosses li { display: grid; grid-template-columns: 20px 1fr; gap: .55rem; align-items: start; }
+.ticks li::before, .crosses li::before { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: .7rem; margin-top: .1rem; }
+.ticks li::before { content: "✓"; background: rgba(127,224,166,.16); color: var(--live); }
+.crosses li { color: var(--silver-lo); }
+.crosses li::before { content: "✕"; background: var(--panel-2); color: var(--silver-lo); }
+.offer-ideal { padding: .9rem 1rem; border-radius: 10px; background: var(--ink); border: 1px solid var(--line); font-size: var(--s-sm); color: var(--silver); }
+.offer-ideal b { color: var(--silver-hi); }
+.offer .btn { width: 100%; }
+.compare-wrap { border-radius: 14px; border: 1px solid var(--line); }
+.compare { width: 100%; min-width: 680px; border-collapse: collapse; font-size: var(--s-sm); }
+.compare th, .compare td { padding: .9rem 1rem; text-align: center; border-bottom: 1px solid var(--line); }
+.compare thead th { font: 400 1.15rem/1.2 var(--f-display), serif; color: var(--silver-hi); background: var(--panel); }
+.compare tbody th { text-align: left; font-weight: 400; color: var(--silver-lo); }
+.compare td { color: var(--silver-hi); }
+.compare .is-reco { background: rgba(255,255,255,.035); }
+.compare thead .is-reco { background: var(--silver-hi); color: var(--ink); }
+.compare .tick { color: var(--live); font-weight: 700; }
+.compare .dash { color: var(--silver-lo); }
+.compare tbody tr:last-child th, .compare tbody tr:last-child td { border-bottom: 0; }
+.suivi-cond { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1.2rem; }
+@media (max-width: 900px) { .suivi-cond { grid-template-columns: 1fr; } }
+.cond-card { display: grid; gap: 1rem; align-content: start; padding: clamp(1.4rem, 3vw, 2rem); border-radius: 16px; border: 1px solid var(--line); background: var(--graphite); }
+.cond-card h2 { font-size: 1.7rem; }
+.cond-card ul { list-style: none; display: grid; gap: .65rem; font-size: var(--s-sm); color: var(--silver); }
+.cond-card li { padding-left: 1rem; position: relative; }
+.cond-card li::before { content: ""; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; border-radius: 50%; background: var(--silver-lo); }
+.cond-card li b { color: var(--silver-hi); }
+.pay-ways { display: grid; gap: .9rem; }
+.pay-ways > div { display: grid; grid-template-columns: 44px 1fr; gap: .9rem; align-items: start; }
+.pay-ways > div > span:last-child { display: grid; gap: .15rem; font-size: var(--s-sm); color: var(--silver-lo); }
+.pay-ways b { color: var(--silver-hi); font-size: 1rem; }
+.pw-icon { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; background: var(--silver-hi); color: var(--ink); font: 500 1.2rem/1 var(--f-display), serif; }
+.offer-thumb { display: grid !important; place-items: center; background: var(--silver-hi); color: var(--ink); font: 500 2.2rem/1 var(--f-display), serif; }
+.suivi-band { padding-block: clamp(2.5rem, 6vw, 4rem); }
+.suivi-band-inner { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem 3rem; flex-wrap: wrap; padding: clamp(1.4rem, 4vw, 2.6rem); border-radius: 18px; border: 1px solid var(--line); background: linear-gradient(120deg, var(--panel-2), var(--graphite) 60%); }
+.suivi-band-inner > div { display: grid; gap: .6rem; max-width: 40rem; }
+.suivi-band-inner h2 { font-size: clamp(1.7rem, 3.4vw, 2.6rem); line-height: 1.1; }
+.suivi-band-inner p:not(.eyebrow) { color: var(--silver-lo); }

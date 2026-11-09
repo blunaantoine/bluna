@@ -2,6 +2,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminNav from "./AdminNav";
+import { offers, yearlyPrice } from "@/content/offers";
 
 type Line = { label: string; qty: number; unitPrice: number };
 type Client = { id: string; name: string; company: string; phone: string; email: string; token: string; invoiceCount?: number; due?: number };
@@ -349,7 +350,19 @@ function InvoiceEditor({ inv, clients, projects, onClose, onDone, onClientCreate
               <button type="button" className="icon-btn" aria-label="Retirer la ligne" onClick={() => setItems((x) => x.length > 1 ? x.filter((_, i) => i !== k) : x)}>×</button>
             </div>
           ))}
-          <button type="button" className="link-arrow" onClick={() => setItems((x) => [...x, { label: "", qty: 1, unitPrice: 0 }])}>+ Ajouter une ligne</button>
+          <div className="le-add">
+            <button type="button" className="link-arrow" onClick={() => setItems((x) => [...x, { label: "", qty: 1, unitPrice: 0 }])}>+ Ajouter une ligne</button>
+            <select aria-label="Ajouter une formule de suivi" className="admin-select" value="" onChange={(e) => {
+              const [id, per] = e.target.value.split(":"); const o = offers.find((x) => x.id === id); if (!o) return;
+              const month = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+              const line = per === "an" ? { label: `Suivi « ${o.title} » — 12 mois (2 mois offerts)`, qty: 1, unitPrice: yearlyPrice(o.monthly) } : { label: `Suivi « ${o.title} » — ${month}`, qty: 1, unitPrice: o.monthly };
+              setItems((x) => [...x.filter((l) => l.label || l.unitPrice), line]);
+              if (!title) setTitle(per === "an" ? `Suivi ${o.title} — offre annuelle` : `Suivi ${o.title} — ${month}`);
+            }}>
+              <option value="">+ Formule de suivi…</option>
+              {offers.map((o) => <optgroup key={o.id} label={o.title}><option value={`${o.id}:mois`}>{o.title} · mensuel · {o.monthly.toLocaleString("fr-FR")} F</option><option value={`${o.id}:an`}>{o.title} · annuel · {yearlyPrice(o.monthly).toLocaleString("fr-FR")} F</option></optgroup>)}
+            </select>
+          </div>
         </div>
         <div className="field-row">
           <label className="field"><span>Remise (FCFA)</span><input id="inv-discount" type="number" min={0} step={500} value={discount} onChange={(e) => setDiscount(+e.target.value)} /></label>

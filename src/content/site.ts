@@ -53,6 +53,7 @@ export const contactServices = [
   { id: "print", label: "Affiche / flyer" },
   { id: "social", label: "Visuels réseaux" },
   { id: "photo", label: "Photo / vidéo" },
+  { id: "suivi", label: "Suivi / maintenance" },
 ];
 
 export const budgets = [

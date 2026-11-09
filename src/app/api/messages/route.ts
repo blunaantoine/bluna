@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { notifyNewMessage } from "@/lib/notify";
+import { offers, yearlyPrice } from "@/content/offers";
+import { fcfa } from "@/lib/invoices";
 
 const hits = new Map<string, number[]>();
 function limited(ip: string) {
@@ -32,9 +34,14 @@ export async function POST(req: Request) {
   const projectSlug = str(b.projectSlug, 80) || null;
   const project = projectSlug ? await db.project.findUnique({ where: { slug: projectSlug }, select: { slug: true, title: true } }) : null;
 
+  // Formule de suivi choisie sur la page /suivi : notée en tête du message
+  const [offerId, period] = str(b.offer, 40).split(":");
+  const offer = offers.find((o) => o.id === offerId);
+  const fullBody = offer ? `[Formule de suivi : ${offer.title} — ${period === "annuel" ? `${fcfa(yearlyPrice(offer.monthly))} / an` : `${fcfa(offer.monthly)} / mois`}]\n${body}` : body;
+
   const message = await db.message.create({
     data: {
-      name, phone, email, body,
+      name, phone, email, body: fullBody,
       company: str(b.company, 160),
       budget: str(b.budget, 80),
       deadline: str(b.deadline, 80),
@@ -44,6 +51,6 @@ export async function POST(req: Request) {
   });
   if (project) await db.project.update({ where: { slug: project.slug }, data: { inquiries: { increment: 1 } } });
 
-  await notifyNewMessage({ message, projectTitle: project?.title });
+  await notifyNewMessage({ message, projectTitle: project?.title ?? (offer ? `Formule ${offer.title}` : null) });
   return NextResponse.json({ ok: true, id: message.id });
 }

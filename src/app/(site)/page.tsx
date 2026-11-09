@@ -62,6 +62,17 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="wrap suivi-band">
+        <Reveal className="suivi-band-inner">
+          <div>
+            <p className="eyebrow">Après la mise en ligne</p>
+            <h2 className="display">Votre application suivie chaque mois, <em className="silver">dès 10 000 FCFA</em>.</h2>
+            <p>Sécurité, bugs corrigés, assistance WhatsApp : trois formules sans engagement.</p>
+          </div>
+          <Link href="/suivi" className="btn">Voir les offres de suivi</Link>
+        </Reveal>
+      </section>
+
       <section className="section" id="methode">
         <div className="wrap">
           <Reveal className="section-head">

@@ -12,12 +12,15 @@ type Errors = Partial<Record<"name" | "body" | "phone" | "email" | "form", strin
 const DRAFT = "oqui-brouillon";
 const serviceFor = (cat?: string) => (cat === "web" ? ["web"] : cat === "photo" ? ["photo"] : cat === "identite" ? ["identite"] : []);
 
-export default function ContactForm({ reference }: { reference: Ref }) {
+type Offer = { id: string; title: string; yearly: boolean; price: number } | null;
+const nf = (n: number) => new Intl.NumberFormat("fr-FR").format(n).replace(/\u202f|\u00a0/g, " ");
+
+export default function ContactForm({ reference, offer = null }: { reference: Ref; offer?: Offer }) {
   const router = useRouter();
-  const [services, setServices] = useState<string[]>(serviceFor(reference?.category).length ? serviceFor(reference?.category) : ["identite"]);
+  const [services, setServices] = useState<string[]>(offer ? ["suivi"] : serviceFor(reference?.category).length ? serviceFor(reference?.category) : ["identite"]);
   const [budget, setBudget] = useState(0);
   const [deadline, setDeadline] = useState(1);
-  const [f, setF] = useState({ name: "", company: "", phone: "", email: "", body: reference ? `Bonjour Antoine, j'aimerais un projet dans l'esprit de « ${reference.title} ». ` : "", website: "" });
+  const [f, setF] = useState({ name: "", company: "", phone: "", email: "", body: offer ? `Bonjour Antoine, je souhaite souscrire à la formule de suivi « ${offer.title} » (${nf(offer.price)} FCFA / ${offer.yearly ? "an" : "mois"}) pour mon site ou mon application : ` : reference ? `Bonjour Antoine, j'aimerais un projet dans l'esprit de « ${reference.title} ». ` : "", website: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
 
@@ -39,7 +42,7 @@ export default function ContactForm({ reference }: { reference: Ref }) {
     try {
       const res = await fetch("/api/messages", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...f, services: services.map((s) => contactServices.find((c) => c.id === s)?.label ?? s), budget: budgets[budget], deadline: deadlines[deadline], projectSlug: reference?.slug }),
+        body: JSON.stringify({ ...f, services: services.map((s) => contactServices.find((c) => c.id === s)?.label ?? s), budget: budgets[budget], deadline: deadlines[deadline], projectSlug: reference?.slug, offer: offer ? `${offer.id}${offer.yearly ? ":annuel" : ""}` : undefined }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { setErrors(data.errors ?? { form: data.error ?? "L'envoi a échoué. Réessayez ou écrivez-moi sur WhatsApp." }); setState("idle"); return; }
@@ -60,7 +63,7 @@ export default function ContactForm({ reference }: { reference: Ref }) {
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </motion.span>
         <h3>Message reçu, merci {f.name.split(" ")[0]} !</h3>
-        <p>Antoine vient d'être notifié{reference ? <> avec votre projet de référence, <strong>{reference.title}</strong></> : null}. Il vous répond sous 24 h {f.phone ? "sur WhatsApp" : "par e-mail"}.</p>
+        <p>Antoine vient d'être notifié{offer ? <> de votre choix : formule <strong>{offer.title}</strong></> : reference ? <> avec votre projet de référence, <strong>{reference.title}</strong></> : null}. Il vous répond sous 24 h {f.phone ? "sur WhatsApp" : "par e-mail"}.</p>
         <div className="hero-actions">
           <Link href="/projets" className="btn">Revoir les travaux</Link>
           <a href={wa} target="_blank" rel="noopener" className="btn btn-ghost">Écrire aussi sur WhatsApp</a>
@@ -71,6 +74,17 @@ export default function ContactForm({ reference }: { reference: Ref }) {
 
   return (
     <form className="form" onSubmit={submit} noValidate>
+      {offer && (
+        <div className="ref-card offer-ref">
+          <span className="thumb offer-thumb" aria-hidden="true">{offer.title[0]}</span>
+          <span style={{ minWidth: 0 }}>
+            <span className="eyebrow">Formule de suivi choisie</span>
+            <strong>{offer.title}</strong>
+            <p>{nf(offer.price)} FCFA / {offer.yearly ? "an (12 mois pour le prix de 10)" : "mois"} · sans engagement</p>
+          </span>
+          <a href="/suivi" className="icon-btn" aria-label="Changer de formule">↺</a>
+        </div>
+      )}
       <AnimatePresence>
         {reference && (
           <motion.div className="ref-card" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, padding: 0, margin: 0 }}>
