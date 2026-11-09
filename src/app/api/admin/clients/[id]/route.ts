@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { unlink } from "node:fs/promises";
+import path from "node:path";
 import { newToken } from "@/lib/invoices";
+import { proofDir } from "@/lib/uploads";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -12,10 +15,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   return NextResponse.json({ client });
 }
 
-export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const paid = await db.payment.count({ where: { invoice: { clientId: id }, status: "valide" } });
-  if (paid) return NextResponse.json({ error: "Ce client a des paiements enregistrés : sa fiche est conservée pour votre comptabilité." }, { status: 409 });
-  await db.client.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  const force = new URL(req.url).searchParams.get("force") === "1";
+  const client = await db.client.findUnique({ where: { id }, include: { invoices: { include: { payments: true } } } });
+  if (!client) return NextResponse.json({ error: "Client introuvable." }, { status: 404 });
+  const payments = client.invoices.flatMap((i) => i.payments);
+  const paid = payments.filter((p) => p.status === "valide").length;
+  if (paid && !force)
+    return NextResponse.json({ error: `${client.name} a ${paid} paiement(s) enregistré(s). Le supprimer effacera aussi ses factures et l'historique de ces paiements.`, needsForce: true }, { status: 409 });
+  // Supprime aussi les captures de paiement stockées sur le disque
+  await Promise.all(payments.filter((p) => p.proof).map((p) => unlink(path.join(proofDir(), p.proof)).catch(() => {})));
+  await db.client.delete({ where: { id } }); // factures et paiements supprimés en cascade
+  return NextResponse.json({ ok: true, invoices: client.invoices.length });
 }

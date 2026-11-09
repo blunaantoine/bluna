@@ -348,6 +348,15 @@ function ClientEditor({ client, onClose, onDone }: { client: Client | null; onCl
     if (!r.ok) { setErr(r.data.error || "Enregistrement impossible."); return; }
     onDone(client ? "Client enregistré." : "Client ajouté.");
   }
+  const [del, setDel] = useState<"" | "confirm" | "force">("");
+  async function remove() {
+    if (!client) return;
+    if (!del) { setDel("confirm"); setErr(`Cliquez encore pour supprimer ${client.name}${client.invoiceCount ? ` et ses ${client.invoiceCount} facture(s)` : ""}. Son lien privé ne fonctionnera plus.`); return; }
+    const r = await api<{ needsForce?: boolean }>(`/api/admin/clients/${client.id}${del === "force" ? "?force=1" : ""}`, "DELETE");
+    if (r.ok) { onDone(`${client.name} a été supprimé.`); return; }
+    if (r.data.needsForce) { setDel("force"); setErr(`${r.data.error} Cliquez sur « Supprimer quand même » pour confirmer.`); return; }
+    setErr(r.data.error || "Suppression impossible.");
+  }
   async function regen() {
     if (!client) return;
     if (!confirm) { setConfirm(true); setErr("Cliquez encore : l'ancien lien de l'espace client ne fonctionnera plus."); return; }
@@ -356,7 +365,7 @@ function ClientEditor({ client, onClose, onDone }: { client: Client | null; onCl
   }
   return (
     <Drawer title={client ? client.name : "Nouveau client"} onClose={onClose} onSubmit={submit}
-      foot={<>{client && <button type="button" className="btn btn-ghost btn-sm" onClick={regen}>{confirm ? "Confirmer le nouveau lien" : "Changer le lien privé"}</button>}<button className="btn">Enregistrer</button></>}>
+      foot={<>{client && <button type="button" className="btn btn-ghost btn-sm danger" onClick={remove}>{del === "force" ? "Supprimer quand même" : del ? "Confirmer la suppression" : "Supprimer le client"}</button>}{client && <button type="button" className="btn btn-ghost btn-sm" onClick={regen}>{confirm ? "Confirmer le nouveau lien" : "Changer le lien privé"}</button>}<button className="btn">Enregistrer</button></>}>
       <div className="field-row">
         <label className="field"><span>Nom *</span><input id="cl-name" value={c.name} onChange={(e) => setC({ ...c, name: e.target.value })} /></label>
         <label className="field"><span>Entreprise</span><input id="cl-company" value={c.company} onChange={(e) => setC({ ...c, company: e.target.value })} /></label>

@@ -13,14 +13,11 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const projects = await getProjects();
   const featured = projects.filter((p) => p.featured);
-  const pick = (slug: string) => projects.find((p) => p.slug === slug);
-  const tiles = ["capture", "socline", "she-by-la-rochelle", "regards-sur-lome", "miabe-kine", "gloria", "dora", "sonafi"]
-    .map(pick).filter((p): p is NonNullable<typeof p> => !!p)
-    .slice(0, 5)
-    .map((p) => {
-      const img = p.slug === "regards-sur-lome" ? p.images.find((i) => i.src.includes("casque")) ?? p.images[0] : p.images[0];
-      return { src: img.src, label: p.title, slug: p.slug, bg: p.coverBg, fit: fitFor(p, img.src) as "cover" | "contain" };
-    });
+  // Collage de l'accueil : les projets « À la une », dans l'ordre choisi dans l'admin.
+  const tiles = (featured.length ? featured : projects).slice(0, 5).map((p) => {
+    const img = p.images[0];
+    return { src: img.src, label: p.title, slug: p.slug, bg: p.coverBg, fit: fitFor(p, img.src) as "cover" | "contain" };
+  });
   const reel = projects.flatMap((p) => p.images.slice(0, p.category === "photo" ? 4 : 1).map((im) => ({ ...im, slug: p.slug, bg: p.coverBg, contain: fitFor(p, im.src) === "contain" })));
   const stats = [
     { n: projects.length, label: "projets à découvrir" },

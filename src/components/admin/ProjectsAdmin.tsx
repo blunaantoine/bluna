@@ -21,6 +21,9 @@ export default function ProjectsAdmin() {
   const [list, setList] = useState<Project[] | null>(null);
   const [edit, setEdit] = useState<Draft | null>(null);
   const [msg, setMsg] = useState("");
+  const [view, setView] = useState<"tous" | "visibles" | "masques" | "accueil">("tous");
+  const match = (p: Project, k: typeof view) => k === "tous" || (k === "visibles" ? p.published : k === "masques" ? !p.published : p.published && p.featured);
+  const count = (k: typeof view) => list?.filter((p) => match(p, k)).length ?? 0;
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/projets", { cache: "no-store" });
@@ -55,7 +58,7 @@ export default function ProjectsAdmin() {
         <div className="admin-head">
           <div>
             <h1 className="display">Projets</h1>
-            <p className="mono">L'ordre de cette liste est celui du site. Les changements sont en ligne immédiatement.</p>
+            <p className="mono">L'ordre de cette liste est celui du site (flèches ↑ ↓). Les changements sont en ligne immédiatement.</p>
           </div>
           <div className="admin-kpis">
             <div><strong>{list?.filter((p) => p.published).length ?? "–"}</strong><span>en ligne</span></div>
@@ -65,20 +68,29 @@ export default function ProjectsAdmin() {
         </div>
         {top && (top.inquiries > 0 || top.views > 0) && <p className="admin-banner"><span>Projet le plus demandé : <b>{top.title}</b> · {top.inquiries} demande(s), {top.views} vue(s).</span></p>}
 
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+        <div className="admin-banner proj-help">
+          <span><b>Visible sur le site</b> : le projet apparaît dans « Travaux » et a sa page. Décoché, il est masqué pour tout le monde (vous le gardez ici).</span>
+          <span><b>Sur l'accueil</b> : le projet apparaît dans « Travaux choisis » ; les 5 premiers forment le collage du haut de page. Actuellement : {list?.filter((p) => p.published && p.featured).length ?? 0} projet(s).</span>
+        </div>
+        <div className="bill-toolbar">
+          <div className="seg-admin" role="tablist" aria-label="Filtrer les projets">
+            {([["tous", "Tous"], ["visibles", "Visibles"], ["masques", "Masqués"], ["accueil", "Sur l'accueil"]] as const).map(([k, l]) => (
+              <button key={k} role="tab" aria-selected={view === k} onClick={() => setView(k)}>{l} ({count(k)})</button>
+            ))}
+          </div>
           <button className="btn" onClick={() => setEdit(empty())}>+ Nouveau projet</button>
         </div>
 
         <ul className="plist">
-          {list?.map((p, i) => (
+          {list?.map((p, i) => !match(p, view) ? null : (
             <li key={p.id} className={`prow${p.published ? "" : " off"}`}>
               <span className="pthumb" style={{ background: p.coverBg }}><Image src={p.cover} alt="" fill sizes="72px" style={{ objectFit: p.category === "identite" ? "contain" : "cover", padding: p.category === "identite" ? 6 : 0, objectPosition: "50% 0%" }} /></span>
               <span className="pinfo">
-                <b>{p.title}</b>
+                <b>{p.title}{!p.published && <span className="pill s-annulee" style={{ marginLeft: ".6rem", textDecoration: "none" }}>Masqué</span>}</b>
                 <span className="mono">{categoryLabel(p.category)} · {p.year} · {p.images.length} visuel(s) · {p.views} vue(s) · {p.inquiries} demande(s)</span>
               </span>
-              <label className="switch"><input type="checkbox" checked={p.published} onChange={(e) => patch(p.id, { published: e.target.checked })} /><span>En ligne</span></label>
-              <label className="switch"><input type="checkbox" checked={p.featured} onChange={(e) => patch(p.id, { featured: e.target.checked })} /><span>À la une</span></label>
+              <label className="switch"><input type="checkbox" checked={p.published} onChange={(e) => patch(p.id, { published: e.target.checked })} /><span>Visible sur le site</span></label>
+              <label className="switch"><input type="checkbox" checked={p.featured} onChange={(e) => patch(p.id, { featured: e.target.checked })} /><span>Sur l'accueil</span></label>
               <span className="pact">
                 <button className="icon-btn" aria-label={`Monter ${p.title}`} onClick={() => move(i, -1)} disabled={i === 0}>↑</button>
                 <button className="icon-btn" aria-label={`Descendre ${p.title}`} onClick={() => move(i, 1)} disabled={i === list.length - 1}>↓</button>
