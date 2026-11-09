@@ -1,0 +1,201 @@
+/* Enveloppe d'ouverture des factures (lien /f/<facture>).
+   Repris du modèle fourni par Antoine ; toutes les règles sont limitées à .envelope-page. */
+.envelope-page{position:fixed;inset:0;overflow:hidden;z-index:0}
+.envelope-page{
+    --ink:#050505;
+    --paper:#f3efe7;
+    --paper-ink:#16130e;
+    --paper-muted:#675f53;
+    --gold-1:#f3d9a0;
+    --gold-2:#c99a4b;
+    --gold-3:#7a5420;
+    --text:#ece6da;
+    --text-muted:#a49b8c;
+    --ease-out:cubic-bezier(.16,1,.3,1);
+    --ease-io:cubic-bezier(.65,0,.35,1);
+  }
+.envelope-page *{box-sizing:border-box;margin:0;padding:0}
+
+.envelope-page{
+    background:var(--ink);
+    color:var(--text);
+    font-family:var(--f-isans),"Instrument Sans",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+.envelope-page ::selection{background:var(--gold-2);color:#0b0906}
+.envelope-page .room{
+    position:fixed;inset:0;
+    background:
+      radial-gradient(60% 45% at 50% 46%, rgba(120,88,40,.10), transparent 70%),
+      radial-gradient(120% 90% at 50% 50%, #0b0b0b 0%, #040404 70%);
+  }
+.envelope-page .grain{
+    position:fixed;inset:-50%;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+.envelope-page .env-main{
+    position:relative;min-height:100svh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:24px 20px calc(28px + env(safe-area-inset-bottom));
+  }
+.envelope-page .stage{
+    --w:min(88vw, 500px, calc((100svh - 240px) / 1.6 * 1.42));
+    width:var(--w);
+    padding-top:calc(var(--w) / 1.42 * .6);
+    position:relative;
+    transition:transform 1.4s var(--ease-out);
+  }
+.envelope-page .is-open .stage{transform:translateY(calc(var(--w) / 1.42 * .06))}
+.envelope-page .env{
+    position:relative;width:100%;aspect-ratio:1.42;
+    container-type:inline-size;
+    perspective:1600px;
+    opacity:0;transform:translateY(14px) scale(.985);
+    animation:env-arrive 1.2s var(--ease-out) .15s forwards;
+  }
+@keyframes env-arrive{to{opacity:1;transform:none}}
+.envelope-page .env > *{position:absolute}
+.envelope-page .env svg{display:block;width:100%;height:100%;overflow:visible}
+.envelope-page .glow{
+    right:-14%;top:-22%;width:62%;aspect-ratio:1;z-index:0;
+    background:radial-gradient(circle, rgba(255,236,200,.55) 0%, rgba(232,180,100,.22) 22%, rgba(180,120,50,.06) 48%, transparent 68%);
+    filter:blur(6px);
+    opacity:.55;
+    transition:opacity 1.6s var(--ease-out), transform 1.6s var(--ease-out);
+    pointer-events:none;
+  }
+.envelope-page .is-open .glow{opacity:1;transform:translate(-6%, -14%) scale(1.15)}
+.envelope-page .back{inset:0;z-index:1;filter:drop-shadow(0 3cqw 4cqw rgba(0,0,0,.8)) drop-shadow(0 .5cqw .6cqw rgba(0,0,0,.6))}
+.envelope-page .letter{
+    z-index:2;left:5.5%;right:5.5%;top:5%;height:88%;
+    background:var(--paper);
+    border-radius:1.2cqw;
+    box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 -2cqw 5cqw rgba(0,0,0,.35);
+    transform:translateY(0);
+    transition:transform 1.5s var(--ease-out);
+    color:var(--paper-ink);
+    overflow:hidden;
+    cursor:default;
+    text-decoration:none;
+  }
+.envelope-page .letter::before{ /* paper tooth */
+    content:"";position:absolute;inset:0;opacity:.35;mix-blend-mode:multiply;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .5  0 0 0 0 .42  0 0 0 .35 0'/></filter><rect width='100%' height='100%' filter='url(%23p)'/></svg>");
+  }
+.envelope-page .letter::after{ /* light sweeping across as it emerges */
+    content:"";position:absolute;inset:-20% -60%;pointer-events:none;
+    background:linear-gradient(105deg, transparent 40%, rgba(255,255,255,.55) 50%, transparent 60%);
+    transform:translateX(-60%);opacity:0;
+  }
+.envelope-page .is-open .letter{transform:translateY(-71%);cursor:pointer}
+.envelope-page .is-open .letter::after{animation:env-sheen 1.6s var(--ease-io) 1.9s forwards}
+@keyframes env-sheen{0%{opacity:1;transform:translateX(-60%)}100%{opacity:1;transform:translateX(60%)}}
+.envelope-page .letter:focus-visible{outline:2px solid var(--gold-1);outline-offset:4px}
+.envelope-page .front{inset:0;z-index:3;pointer-events:none;filter:drop-shadow(0 -1.2cqw 2cqw rgba(0,0,0,.55))}
+.envelope-page .flap{
+    left:0;right:0;top:0;height:60%;z-index:4;
+    transform-origin:50% 0;
+    transform:rotateX(0deg);
+    transition:transform 1s var(--ease-io);
+    will-change:transform;
+    pointer-events:none;
+  }
+.envelope-page .flap .inside{opacity:0;transition:opacity .1s linear .5s}
+.envelope-page .is-flipping .flap{transform:rotateX(180deg)}
+.envelope-page .is-flipping .flap .inside{opacity:1}
+.envelope-page .is-flap-behind .flap{z-index:1}
+.envelope-page .doc{position:relative;padding:5.4cqw 7cqw 0;display:flex;flex-direction:column;align-items:center;text-align:center}
+.envelope-page .doc .mark{width:6.4cqw;height:6.4cqw;color:var(--paper-ink);opacity:.9}
+.envelope-page .doc .brand{margin-top:1.6cqw;font-size:2.1cqw;letter-spacing:.22em;text-transform:uppercase;font-weight:500;color:var(--paper-muted)}
+.envelope-page .doc h1{
+    margin-top:2.6cqw;
+    font-family:var(--f-iserif),"Instrument Serif",Georgia,serif;font-weight:400;
+    font-size:7.2cqw;line-height:1.02;letter-spacing:-.015em;text-wrap:balance;
+  }
+.envelope-page .doc h1 em{font-style:italic}
+.envelope-page .doc .for{margin-top:1.6cqw;font-size:2.6cqw;color:var(--paper-muted)}
+.envelope-page .doc dl{width:100%;margin-top:3.2cqw;border-top:1px solid rgba(22,19,14,.14)}
+.envelope-page .doc .row{display:flex;justify-content:space-between;align-items:baseline;gap:3cqw;padding:1.5cqw 0;border-bottom:1px solid rgba(22,19,14,.1)}
+.envelope-page .doc dt{font-size:2.3cqw;color:var(--paper-muted);letter-spacing:.02em}
+.envelope-page .doc dd{font-size:2.6cqw;font-weight:500;font-variant-numeric:tabular-nums}
+.envelope-page .doc .row.total dd{font-size:3.6cqw;font-weight:600;letter-spacing:-.01em}
+.envelope-page .seal{
+    z-index:5;left:50%;top:56%;
+    width:max(84px, 22cqw);aspect-ratio:1;
+    transform:translate(-50%,-50%);
+    border:0;background:none;cursor:pointer;border-radius:50%;
+    filter:drop-shadow(0 .9cqw 1.1cqw rgba(0,0,0,.7)) drop-shadow(0 0 .2cqw rgba(0,0,0,.8));
+    transition:transform .35s var(--ease-out);
+    touch-action:manipulation;
+  }
+.envelope-page .seal::before{ /* breathing light: says "touch me" without words */
+    content:"";position:absolute;inset:-18%;border-radius:50%;
+    background:radial-gradient(circle, rgba(243,217,160,.28), transparent 62%);
+    animation:env-breathe 3.2s ease-in-out infinite;pointer-events:none;
+  }
+@keyframes env-breathe{0%,100%{opacity:.25;transform:scale(.92)}50%{opacity:.9;transform:scale(1.04)}}
+.envelope-page .seal:hover{transform:translate(-50%,-50%) scale(1.04)}
+.envelope-page .seal:active{transform:translate(-50%,-50%) scale(.95)}
+.envelope-page .seal:focus-visible{outline:2px solid var(--gold-1);outline-offset:6px}
+.envelope-page .seal .half{position:absolute;inset:0;transition:transform .9s var(--ease-out), opacity .7s ease .15s}
+.envelope-page .seal .half.l{clip-path:polygon(0 0,52% 0,47% 22%,55% 41%,46% 60%,53% 79%,48% 100%,0 100%)}
+.envelope-page .seal .half.r{clip-path:polygon(52% 0,100% 0,100% 100%,48% 100%,53% 79%,46% 60%,55% 41%,47% 22%)}
+.envelope-page .is-broken .seal{pointer-events:none}
+.envelope-page .is-broken .seal::before{animation:none;opacity:0;transition:opacity .2s}
+.envelope-page .is-broken .seal .half.l{transform:translate(-18%, 40%) rotate(-22deg);opacity:0}
+.envelope-page .is-broken .seal .half.r{transform:translate(18%, 46%) rotate(19deg);opacity:0}
+.envelope-page .flecks{position:absolute;inset:0;pointer-events:none}
+.envelope-page .flecks i{
+    position:absolute;left:50%;top:50%;width:.9cqw;height:.9cqw;min-width:3px;min-height:3px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, var(--gold-1), var(--gold-3));
+    opacity:0;
+  }
+.envelope-page .is-broken .flecks i{animation:env-fleck .9s var(--ease-out) forwards}
+@keyframes env-fleck{
+    0%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    100%{opacity:0;transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.4)}
+  }
+.envelope-page .caption{
+    position:relative;margin-top:clamp(28px, 6svh, 56px);
+    min-height:112px;width:min(88vw, 500px);
+    display:grid;place-items:start center;text-align:center;
+  }
+.envelope-page .caption > *{grid-area:1/1}
+.envelope-page .intro{transition:opacity .5s ease, transform .6s var(--ease-out);opacity:0;animation:env-fadeup 1s var(--ease-out) .6s forwards}
+@keyframes env-fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.envelope-page .intro p:first-child{
+    font-size:clamp(22px, 5.4vw, 30px);font-weight:500;letter-spacing:-.02em;color:var(--text);
+    text-shadow:0 0 24px rgba(243,217,160,.12);
+  }
+.envelope-page .intro p + p{margin-top:8px;font-size:15px;color:var(--text-muted)}
+.envelope-page .is-broken .intro{animation:none;opacity:0;transform:translateY(-6px);pointer-events:none}
+.envelope-page .outro{opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .8s ease, transform 1s var(--ease-out);display:flex;flex-direction:column;align-items:center;gap:14px}
+.envelope-page .is-ready .outro{opacity:1;transform:none;pointer-events:auto}
+.envelope-page .cta{
+    display:inline-flex;align-items:center;gap:12px;
+    height:54px;padding:0 26px 0 30px;border-radius:999px;
+    background:linear-gradient(180deg, #f6ecd8, #e6d6b4);
+    color:#17120a;text-decoration:none;font-weight:600;font-size:16px;letter-spacing:-.005em;
+    box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 10px 30px -8px rgba(232,190,120,.35), 0 2px 6px rgba(0,0,0,.5);
+    transition:transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
+  }
+.envelope-page .cta svg{width:18px;height:18px;transition:transform .3s var(--ease-out)}
+.envelope-page .cta:hover{transform:translateY(-1px);box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 16px 36px -8px rgba(232,190,120,.45), 0 2px 6px rgba(0,0,0,.5)}
+.envelope-page .cta:hover svg{transform:translateX(3px)}
+.envelope-page .cta:active{transform:translateY(1px) scale(.99)}
+.envelope-page .cta:focus-visible{outline:2px solid var(--gold-1);outline-offset:4px}
+.envelope-page .secure{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-muted)}
+.envelope-page .secure svg{width:14px;height:14px}
+.envelope-page .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.envelope-page *, .envelope-page *::before, .envelope-page *::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.25s!important;transition-delay:0s!important}
+.envelope-page .seal::before{animation:none}
+
+  }
+
+/* Les dessins sont insérés dans un conteneur « display: contents » : on les replace en absolu. */
+.envelope-page .back, .envelope-page .front { position:absolute }
+/* La feuille sort un peu plus pour que le montant (dernière ligne) ne soit pas caché par la poche */
+.envelope-page .stage{padding-top:calc(var(--w) / 1.42 * .74)}
+.envelope-page .is-open .letter{transform:translateY(-84%)}

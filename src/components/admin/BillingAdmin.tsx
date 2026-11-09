@@ -51,7 +51,7 @@ export default function BillingAdmin({ projects }: { projects: { slug: string; t
   const shown = (invoices ?? []).filter((i) => filter === "toutes" ? true : filter === "ouvertes" ? i.status === "envoyee" || i.status === "partielle" || i.status === "brouillon" : i.status === filter);
 
   const copy = async (txt: string, msg: string) => { try { await navigator.clipboard.writeText(txt); setToast(msg); } catch { setToast(txt); } };
-  const invText = (i: Invoice) => `Bonjour ${i.client.name.split(" ")[0]}, voici votre facture ${i.number} (${i.title}) d'un montant de ${fcfa(i.total - i.amountPaid)}. Vous pouvez la consulter et la payer en ligne (T-Money, Flooz, carte) ici : ${origin}/facture/${i.token}\n\nMerci ! Antoine — OQUI`;
+  const invText = (i: Invoice) => `Bonjour ${i.client.name.split(" ")[0]}, voici votre facture ${i.number} (${i.title}) d'un montant de ${fcfa(i.total - i.amountPaid)}. Vous pouvez la consulter et la payer en ligne (T-Money, Flooz, carte) ici : ${origin}/f/${i.token}\n\nMerci ! Antoine — OQUI`;
   const spaceText = (c: Client) => `Bonjour ${c.name.split(" ")[0]}, voici votre espace client OQUI. Vous y trouverez toutes vos factures et pourrez les payer en ligne : ${origin}/espace/${c.token}`;
 
   async function act(url: string, body: unknown, ok: string, method = "PATCH") {
@@ -131,7 +131,7 @@ export default function BillingAdmin({ projects }: { projects: { slug: string; t
                   <span className="bill-amount"><strong>{fcfa(i.total)}</strong>{i.amountPaid > 0 && i.status !== "payee" && <span className="mono">reste {fcfa(left)}</span>}</span>
                   <span className="pact bill-actions">
                     {i.status !== "brouillon" && i.client.phone && live && <a className="btn btn-sm" href={wa(i.client.phone, invText(i))} target="_blank" rel="noopener">WhatsApp</a>}
-                    {i.status !== "brouillon" && <button className="btn btn-ghost btn-sm" onClick={() => copy(`${origin}/facture/${i.token}`, "Lien de la facture copié.")}>Copier le lien</button>}
+                    {i.status !== "brouillon" && <button className="btn btn-ghost btn-sm" onClick={() => copy(`${origin}/f/${i.token}`, "Lien de la facture copié.")}>Copier le lien</button>}
                     {i.status === "brouillon" && <button className="btn btn-sm" onClick={() => act(`/api/admin/factures/${i.id}`, { action: "envoyer" }, "Facture prête : envoyez le lien au client.")}>Valider</button>}
                     {live && <button className="btn btn-ghost btn-sm" onClick={() => setCashing(i)}>Encaisser</button>}
                     <button className="btn btn-ghost btn-sm" onClick={() => setEditing(i)}>{i.amountPaid > 0 || i.status === "annulee" ? "Détails" : "Modifier"}</button>
