@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { fcfa, isOverdue, remaining, STATUS_LABEL } from "@/lib/invoices";
+import { fedapayEnabled } from "@/lib/fedapay";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Mes factures" };
@@ -52,7 +53,7 @@ export default async function ClientSpace({ params }: { params: Promise<{ token:
         <div className="due-card">
           <span className="mono">Total à payer</span>
           <strong className="display">{fcfa(due)}</strong>
-          <span className="mono">T-Money · Flooz · carte bancaire</span>
+          <span className="mono">{fedapayEnabled() ? "T-Money · Flooz · carte bancaire" : "T-Money · Flooz (Moov)"}</span>
         </div>
       )}
 

@@ -57,7 +57,7 @@ export default function PayPanel(p: Props) {
           Payer maintenant
         </motion.button>
       )}
-      {!open && <p className="pay-methods">T-Money · Flooz · Visa · Mastercard</p>}
+      {!open && <p className="pay-methods">{p.online ? "T-Money · Flooz · Visa · Mastercard" : "T-Money · Flooz (Moov)"}</p>}
 
       <AnimatePresence initial={false}>
         {open && (

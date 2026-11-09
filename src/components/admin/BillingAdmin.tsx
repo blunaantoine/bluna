@@ -32,7 +32,7 @@ async function api<T = Record<string, unknown>>(url: string, method = "GET", bod
   return { ok: res.ok, status: res.status, data: await res.json().catch(() => ({})) };
 }
 
-export default function BillingAdmin({ projects }: { projects: { slug: string; title: string }[] }) {
+export default function BillingAdmin({ projects, online = false }: { projects: { slug: string; title: string }[]; online?: boolean }) {
   const [tab, setTab] = useState<"factures" | "clients">("factures");
   const [invoices, setInvoices] = useState<Invoice[] | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
@@ -58,8 +58,8 @@ export default function BillingAdmin({ projects }: { projects: { slug: string; t
   const shown = (invoices ?? []).filter((i) => filter === "toutes" ? true : filter === "ouvertes" ? i.status === "envoyee" || i.status === "partielle" || i.status === "brouillon" : i.status === filter);
 
   const copy = async (txt: string, msg: string) => { try { await navigator.clipboard.writeText(txt); setToast(msg); } catch { setToast(txt); } };
-  const invText = (i: Invoice) => `Bonjour ${i.client.name.split(" ")[0]}, voici votre facture ${i.number} (${i.title}) d'un montant de ${fcfa(i.total - i.amountPaid)}. Vous pouvez la consulter et la payer en ligne (T-Money, Flooz, carte) ici : ${origin}/f/${i.token}\n\nMerci ! Antoine — OQUI`;
-  const spaceText = (c: Client) => `Bonjour ${c.name.split(" ")[0]}, voici votre espace client OQUI. Vous y trouverez toutes vos factures et pourrez les payer en ligne : ${origin}/espace/${c.token}`;
+  const invText = (i: Invoice) => `Bonjour ${i.client.name.split(" ")[0]}, voici votre facture ${i.number} (${i.title}) d'un montant de ${fcfa(i.total - i.amountPaid)}. Vous pouvez la consulter et la payer ${online ? "en ligne (T-Money, Flooz, carte)" : "par T-Money ou Flooz"} ici : ${origin}/f/${i.token}\n\nMerci ! Antoine — OQUI`;
+  const spaceText = (c: Client) => `Bonjour ${c.name.split(" ")[0]}, voici votre espace client OQUI. Vous y trouverez toutes vos factures et pourrez les payer ${online ? "en ligne" : "par T-Money ou Flooz"} : ${origin}/espace/${c.token}`;
 
   async function act(url: string, body: unknown, ok: string, method = "PATCH") {
     const r = await api(url, method, body);
@@ -123,7 +123,7 @@ export default function BillingAdmin({ projects }: { projects: { slug: string; t
           <ul className="plist">
             {invoices === null && <li className="inbox-empty">Chargement…</li>}
             {invoices && !shown.length && (
-              <li className="inbox-empty"><strong>{invoices.length ? "Aucune facture dans ce filtre." : "Créez votre première facture."}</strong><span>Ajoutez un client, les lignes de la prestation, puis envoyez le lien sur WhatsApp : votre client la consulte et la paie en T-Money, Flooz ou carte.</span></li>
+              <li className="inbox-empty"><strong>{invoices.length ? "Aucune facture dans ce filtre." : "Créez votre première facture."}</strong><span>Ajoutez un client, les lignes de la prestation, puis envoyez le lien sur WhatsApp : votre client la consulte et la paie par T-Money ou Flooz.</span></li>
             )}
             {shown.map((i) => {
               const left = i.total - i.amountPaid;

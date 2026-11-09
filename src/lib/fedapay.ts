@@ -9,7 +9,11 @@ const base = () =>
   process.env.FEDAPAY_API_BASE ||
   (process.env.FEDAPAY_ENV === "live" ? "https://api.fedapay.com" : "https://sandbox-api.fedapay.com");
 
-export const fedapayEnabled = () => !!process.env.FEDAPAY_SECRET_KEY;
+/**
+ * Paiement en ligne désactivé par défaut : seul le transfert Mobile Money est proposé.
+ * Pour le réactiver : PAIEMENT_EN_LIGNE="oui" et FEDAPAY_SECRET_KEY dans le .env.
+ */
+export const fedapayEnabled = () => process.env.PAIEMENT_EN_LIGNE === "oui" && !!process.env.FEDAPAY_SECRET_KEY;
 
 type Tx = { id: number; status: string; amount: number; reference?: string; custom_metadata?: Record<string, unknown> | null };
 

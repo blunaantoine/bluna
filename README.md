@@ -62,7 +62,9 @@ Dans `.env` :
 
 Sans ces réglages, les messages restent enregistrés et visibles dans `/admin`.
 
-## Activer le paiement en ligne (FedaPay)
+## Activer le paiement en ligne (FedaPay) — désactivé pour l'instant
+
+Par défaut, seul le transfert Mobile Money est proposé. Pour réactiver FedaPay : `PAIEMENT_EN_LIGNE="oui"` dans `.env`, puis les étapes ci-dessous.
 
 1. Créez un compte marchand sur fedapay.com et faites valider votre compte (pièce d'identité, numéro de retrait).
 2. Dans `.env` : `FEDAPAY_SECRET_KEY` (commencez par la clé `sk_sandbox_...` et `FEDAPAY_ENV="sandbox"`).

@@ -82,6 +82,7 @@ SMTP_PASS=""
 NOTIFY_EMAIL="blunaantoine@gmail.com"
 
 # Paiement FedaPay (laisser vide = transfert Mobile Money manuel uniquement)
+PAIEMENT_EN_LIGNE="non"
 FEDAPAY_SECRET_KEY=""
 FEDAPAY_ENV="sandbox"
 PAY_TMONEY_NUMBER="+228 71 99 81 55"
