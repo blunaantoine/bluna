@@ -146,3 +146,20 @@
 .receipt-link { justify-self: start; }
 .proof-empty .opt { font-weight: 400; color: var(--silver-lo); }
 .proof-drop { min-height: 110px; }
+
+/* Détail d'une formule de suivi sur la facture */
+.paper-offer { display: grid; gap: 1rem; padding: 1.2rem 1.3rem; border-radius: 10px; border: 1px solid var(--rule); background: #fbfaf7; break-inside: avoid; }
+.po-head h3 { font: 400 1.5rem/1.1 var(--f-display), serif; color: var(--ink2); }
+.po-head p { color: var(--muted); font-size: .85rem; margin-top: .2rem; }
+.po-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+@media (max-width: 560px) { .po-cols { grid-template-columns: 1fr; } }
+.po-yes, .po-no, .po-cond { list-style: none; display: grid; gap: .4rem; font-size: .85rem; }
+.po-yes li, .po-no li { display: grid; grid-template-columns: 16px 1fr; gap: .5rem; }
+.po-yes li::before { content: "✓"; color: #1f8a55; font-weight: 700; }
+.po-no li { color: var(--muted); }
+.po-no li::before { content: "✕"; color: #a39e94; }
+.po-cond { padding-top: .8rem; border-top: 1px dashed var(--rule); color: var(--muted); font-size: .78rem; gap: .25rem; }
+@media print {
+  html, :root { background: #fff !important; color-scheme: light !important; }
+  .paper-offer { background: #fff; }
+}

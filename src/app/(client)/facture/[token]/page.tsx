@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { fedapayEnabled } from "@/lib/fedapay";
 import { fcfa, linesTotal, STATUS_LABEL, toPublic } from "@/lib/invoices";
 import { profile } from "@/content/site";
+import { offersInLines, shortConditions } from "@/content/offers";
 import PayPanel from "@/components/billing/PayPanel";
 import PrintButton from "@/components/billing/PrintButton";
 import ReceiptPrompt from "@/components/billing/ReceiptPrompt";
@@ -94,6 +95,27 @@ export default async function InvoicePage({ params, searchParams }: Props) {
               </ul>
             </div>
           )}
+
+          {offersInLines(inv.items.map((l) => l.label)).map(({ offer: o, yearly }) => (
+            <section key={o.id} className="paper-offer" aria-label={`Détail de la formule ${o.title}`}>
+              <div className="po-head">
+                <span className="lbl">Détail de la formule</span>
+                <h3>{o.title}</h3>
+                <p>{o.tagline} · {yearly ? "abonnement annuel (12 mois pour le prix de 10)" : "abonnement mensuel"}</p>
+              </div>
+              <div className="po-cols">
+                <div>
+                  <span className="lbl">Inclus</span>
+                  <ul className="po-yes">{o.included.map((t) => <li key={t}>{t}</li>)}</ul>
+                </div>
+                <div>
+                  <span className="lbl">{o.other.label}</span>
+                  <ul className={o.other.positive ? "po-yes" : "po-no"}>{o.other.items.map((t) => <li key={t}>{t}</li>)}</ul>
+                </div>
+              </div>
+              <ul className="po-cond">{shortConditions.map((c) => <li key={c}>{c}</li>)}</ul>
+            </section>
+          ))}
 
           {inv.notes && <p className="paper-notes">{inv.notes}</p>}
           {inv.status === "payee" && <div className="stamp" aria-label="Facture payée">Payée{inv.paidAt ? <small>{dateFr(inv.paidAt)}</small> : null}</div>}

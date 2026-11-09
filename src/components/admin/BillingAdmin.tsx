@@ -355,9 +355,10 @@ function InvoiceEditor({ inv, clients, projects, onClose, onDone, onClientCreate
             <select aria-label="Ajouter une formule de suivi" className="admin-select" value="" onChange={(e) => {
               const [id, per] = e.target.value.split(":"); const o = offers.find((x) => x.id === id); if (!o) return;
               const month = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
-              const line = per === "an" ? { label: `Suivi « ${o.title} » — 12 mois (2 mois offerts)`, qty: 1, unitPrice: yearlyPrice(o.monthly) } : { label: `Suivi « ${o.title} » — ${month}`, qty: 1, unitPrice: o.monthly };
+              const line = per === "an" ? { label: `Formule de suivi « ${o.title} » — 12 mois (2 mois offerts)`, qty: 1, unitPrice: yearlyPrice(o.monthly) } : { label: `Formule de suivi « ${o.title} » — ${month}`, qty: 1, unitPrice: o.monthly };
               setItems((x) => [...x.filter((l) => l.label || l.unitPrice), line]);
-              if (!title) setTitle(per === "an" ? `Suivi ${o.title} — offre annuelle` : `Suivi ${o.title} — ${month}`);
+              const name = /^suivi/i.test(o.title) ? o.title : `Suivi ${o.title}`;
+              if (!title) setTitle(per === "an" ? `${name} — offre annuelle` : `${name} — ${month}`);
             }}>
               <option value="">+ Formule de suivi…</option>
               {offers.map((o) => <optgroup key={o.id} label={o.title}><option value={`${o.id}:mois`}>{o.title} · mensuel · {o.monthly.toLocaleString("fr-FR")} F</option><option value={`${o.id}:an`}>{o.title} · annuel · {yearlyPrice(o.monthly).toLocaleString("fr-FR")} F</option></optgroup>)}

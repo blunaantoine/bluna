@@ -85,3 +85,22 @@ export const conditions: [string, string][] = [
   ["Changement de formule", "possible à tout moment, effectif le mois suivant."],
   ["Hors forfait", "hébergement, nom de domaine et refonte importante."],
 ];
+
+/** Retrouve les formules citées dans les lignes d'une facture (« Formule de suivi « Titre » — … »). */
+export function offersInLines(labels: string[]) {
+  const found: { offer: Offer; yearly: boolean }[] = [];
+  for (const l of labels) {
+    const m = /suivi[^«]*«\s*(.+?)\s*»/i.exec(l);
+    const o = m && offers.find((x) => x.title.toLowerCase() === m[1].toLowerCase());
+    if (o && !found.some((f) => f.offer.id === o.id)) found.push({ offer: o, yearly: /12 mois|annuel/i.test(l) });
+  }
+  return found;
+}
+
+/** Rappel court des conditions, imprimé sous le détail de la formule. */
+export const shortConditions = [
+  "Sans engagement : résiliable avec un préavis de 15 jours.",
+  "Paiement en début de mois, avant le début du suivi.",
+  "Toute panne causée par le code de l'application est corrigée gratuitement.",
+  "Hors forfait : hébergement, nom de domaine et refonte importante.",
+];
