@@ -110,6 +110,8 @@ Type=simple
 WorkingDirectory=$APP_DIR
 Environment=NODE_ENV=production
 Environment=PORT=$PORT
+# IPv6 inutilisable sur ce VPS : Node doit préférer l'IPv4 (FedaPay, Telegram, SMTP)
+Environment=NODE_OPTIONS=--dns-result-order=ipv4first
 ExecStart=$(command -v npx) next start -p $PORT
 Restart=always
 RestartSec=5
