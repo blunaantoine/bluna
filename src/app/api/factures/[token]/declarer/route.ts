@@ -1,33 +1,58 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import sharp from "sharp";
 import { db } from "@/lib/db";
 import { fcfa, remaining, siteUrl } from "@/lib/invoices";
-import { sendAlert } from "@/lib/notify";
+import { sendAlertWithPhoto } from "@/lib/notify";
+import { proofDir } from "@/lib/uploads";
 
-/** Le client signale un paiement Mobile Money fait à la main. Antoine le valide dans l'admin. */
+const MAX = 12 * 1024 * 1024;
+
+/**
+ * Le client signale un transfert Mobile Money et joint la capture d'écran du paiement.
+ * Antoine reçoit la capture (Telegram / e-mail) et valide dans l'admin.
+ */
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const inv = await db.invoice.findUnique({ where: { token }, include: { client: true, payments: true } });
   if (!inv || inv.status === "brouillon" || inv.status === "annulee") return NextResponse.json({ error: "Facture introuvable." }, { status: 404 });
 
+  const form = await req.formData().catch(() => null);
+  if (!form) return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   const due = remaining(inv);
-  const b = await req.json().catch(() => ({}));
-  const amount = Math.round(Number(b.amount) || 0);
-  const operator = b.operator === "flooz" ? "Flooz" : "T-Money";
-  const reference = String(b.reference || "").trim().slice(0, 80);
-  const payerPhone = String(b.phone || "").trim().slice(0, 40);
+  const amount = Math.round(Number(form.get("amount")) || 0);
+  const operator = form.get("operator") === "flooz" ? "Flooz" : "T-Money";
+  const payerPhone = String(form.get("phone") || "").trim().slice(0, 40);
+  const file = form.get("proof");
 
   const errors: Record<string, string> = {};
-  if (amount <= 0 || amount > due) errors.amount = `Indiquez le montant envoyé (au plus ${fcfa(due)}).`;
-  if (reference.length < 4) errors.reference = "Indiquez la référence du SMS de confirmation.";
+  if (amount <= 0 || amount > due) errors.amount = `Montant invalide (au plus ${fcfa(due)}).`;
   if (payerPhone.replace(/\D/g, "").length < 8) errors.phone = "Indiquez le numéro qui a envoyé l'argent.";
+  if (!(file instanceof File) || file.size === 0) errors.proof = "Ajoutez la capture d'écran de votre paiement.";
+  else if (!file.type.startsWith("image/")) errors.proof = "La capture doit être une image (photo ou capture d'écran).";
+  else if (file.size > MAX) errors.proof = "Image trop lourde (12 Mo maximum).";
   if (Object.keys(errors).length) return NextResponse.json({ errors }, { status: 422 });
   if (inv.payments.filter((p) => p.status === "en_attente" && p.method === "mobile").length >= 3)
     return NextResponse.json({ error: "Plusieurs paiements sont déjà en cours de vérification. Antoine vous recontacte." }, { status: 429 });
 
-  await db.payment.create({ data: { invoiceId: inv.id, amount, method: "mobile", provider: operator, reference, payerName: inv.client.name, payerPhone } });
-  await sendAlert(
+  // Ré-encodage : vérifie que c'est une vraie image, retire les métadonnées (GPS…) et allège le fichier.
+  let jpeg: Buffer;
+  try {
+    jpeg = await sharp(Buffer.from(await (file as File).arrayBuffer())).rotate().resize({ width: 1600, height: 2400, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82 }).toBuffer();
+  } catch {
+    return NextResponse.json({ errors: { proof: "Cette image ne peut pas être lue. Essayez une autre capture." } }, { status: 422 });
+  }
+  const name = `${inv.number}-${Date.now().toString(36)}-${randomBytes(6).toString("hex")}.jpg`;
+  await mkdir(proofDir(), { recursive: true });
+  await writeFile(path.join(proofDir(), name), jpeg);
+
+  await db.payment.create({ data: { invoiceId: inv.id, amount, method: "mobile", provider: operator, payerName: inv.client.name, payerPhone, proof: name } });
+  await sendAlertWithPhoto(
     `À vérifier : ${fcfa(amount)} par ${operator} — facture ${inv.number}`,
-    `${inv.client.name} indique avoir envoyé ${fcfa(amount)} par ${operator} depuis le ${payerPhone}.\nRéférence : ${reference}\nVérifiez sur votre téléphone puis validez : ${siteUrl()}/admin/factures`,
+    `${inv.client.name} indique avoir envoyé ${fcfa(amount)} par ${operator} depuis le ${payerPhone}. Capture jointe.\nVérifiez la réception puis validez : ${siteUrl()}/admin/factures`,
+    jpeg,
   );
   return NextResponse.json({ ok: true });
 }

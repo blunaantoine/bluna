@@ -99,6 +99,8 @@ model Payment {
   reference     String    @default("")
   payerName     String    @default("")
   payerPhone    String    @default("")
+  /// Capture d'écran du transfert (fichier privé, visible seulement dans l'admin)
+  proof         String    @default("")
   createdAt     DateTime  @default(now())
   confirmedAt   DateTime?
 }

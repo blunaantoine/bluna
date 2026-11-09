@@ -116,3 +116,16 @@
   .paper-meta { justify-items: start; text-align: left; }
   .stamp { top: auto; bottom: 12%; right: 6%; font-size: 1.5rem; padding: .3rem .8rem; }
 }
+
+/* Capture du paiement */
+.proof-drop { position: relative; display: grid; place-items: center; min-height: 150px; border: 1.5px dashed var(--silver-lo); border-radius: 12px; background: var(--panel); cursor: pointer; overflow: hidden; transition: border-color .25s, background .25s; }
+.proof-drop:hover { border-color: var(--silver-hi); background: var(--panel-2); }
+.proof-drop.invalid { border-color: var(--alert); }
+.proof-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.proof-drop input:focus-visible + * { outline: 2px solid var(--silver); outline-offset: 4px; }
+.proof-empty { display: grid; justify-items: center; gap: .35rem; padding: 1.2rem; text-align: center; color: var(--silver-lo); pointer-events: none; }
+.proof-empty b { color: var(--silver-hi); font-size: var(--s-sm); }
+.proof-empty small { font-size: .75rem; }
+.proof-drop.has { place-items: stretch; border-style: solid; }
+.proof-drop img { width: 100%; max-height: 320px; object-fit: contain; background: #000; pointer-events: none; }
+.proof-change { position: absolute; right: 8px; bottom: 8px; padding: .35rem .7rem; border-radius: 999px; background: rgba(13,13,14,.82); font: 500 .7rem/1 var(--f-mono), monospace; color: var(--silver-hi); pointer-events: none; }

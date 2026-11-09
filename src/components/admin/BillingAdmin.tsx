@@ -5,7 +5,7 @@ import AdminNav from "./AdminNav";
 
 type Line = { label: string; qty: number; unitPrice: number };
 type Client = { id: string; name: string; company: string; phone: string; email: string; token: string; invoiceCount?: number; due?: number };
-type Payment = { id: string; amount: number; method: string; status: string; provider: string; reference: string; payerPhone: string; createdAt: string; transactionId: string | null };
+type Payment = { id: string; amount: number; method: string; status: string; provider: string; reference: string; payerPhone: string; proof: string; createdAt: string; transactionId: string | null };
 type Invoice = {
   id: string; number: string; token: string; title: string; items: Line[]; discount: number; total: number; amountPaid: number;
   allowDeposit: boolean; status: string; notes: string; projectSlug: string | null; issuedAt: string; dueAt: string | null; paidAt: string | null;
@@ -80,7 +80,13 @@ export default function BillingAdmin({ projects }: { projects: { slug: string; t
             <b>{pending.length} paiement{pending.length > 1 ? "s" : ""} Mobile Money à vérifier</b>
             {pending.map(({ p, i }) => (
               <div key={p.id} className="verify-row">
-                <span><b>{fcfa(p.amount)}</b> par {p.provider} · {i.client.name} · {i.number}<br /><span className="mono">depuis {p.payerPhone} · réf. {p.reference} · {dateFr(p.createdAt)}</span></span>
+                {p.proof ? (
+                  <a href={`/api/admin/paiements/${p.id}/preuve`} target="_blank" rel="noopener" className="proof-thumb" title="Ouvrir la capture en grand">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`/api/admin/paiements/${p.id}/preuve`} alt={`Capture du paiement de ${i.client.name}`} />
+                  </a>
+                ) : null}
+                <span className="verify-info"><b>{fcfa(p.amount)}</b> par {p.provider} · {i.client.name} · {i.number}<br /><span className="mono">depuis {p.payerPhone}{p.reference ? ` · réf. ${p.reference}` : ""} · {dateFr(p.createdAt)}</span>{p.proof ? <><br /><a className="link-arrow" href={`/api/admin/paiements/${p.id}/preuve`} target="_blank" rel="noopener">Voir la capture ↗</a></> : null}</span>
                 <span className="pact">
                   <button className="btn btn-sm" onClick={() => act(`/api/admin/paiements/${p.id}`, { action: "valider" }, "Paiement validé, la facture est à jour.")}>J'ai bien reçu</button>
                   <button className="btn btn-ghost btn-sm" onClick={() => act(`/api/admin/paiements/${p.id}`, { action: "refuser" }, "Paiement refusé.")}>Pas reçu</button>
@@ -235,7 +241,7 @@ function InvoiceEditor({ inv, clients, projects, onClose, onDone, onClientCreate
 
       {inv && inv.payments.length > 0 && (
         <fieldset><legend>Paiements</legend>
-          <ul className="pay-hist">{inv.payments.map((p) => <li key={p.id}><span>{dateFr(p.createdAt)} · {METHOD[p.method] ?? p.method}{p.provider && p.method === "mobile" ? ` (${p.provider})` : ""}{p.reference ? ` · réf. ${p.reference}` : ""}</span><span className={`status s-${p.status === "valide" ? "repondu" : p.status === "en_attente" ? "nouveau" : ""}`}>{p.status === "valide" ? fcfa(p.amount) : `${fcfa(p.amount)} · ${p.status.replace("_", " ")}`}</span></li>)}</ul>
+          <ul className="pay-hist">{inv.payments.map((p) => <li key={p.id}><span>{dateFr(p.createdAt)} · {METHOD[p.method] ?? p.method}{p.provider && p.method === "mobile" ? ` (${p.provider})` : ""}{p.reference ? ` · réf. ${p.reference}` : ""}{p.proof ? <> · <a href={`/api/admin/paiements/${p.id}/preuve`} target="_blank" rel="noopener">capture</a></> : null}</span><span className={`status s-${p.status === "valide" ? "repondu" : p.status === "en_attente" ? "nouveau" : ""}`}>{p.status === "valide" ? fcfa(p.amount) : `${fcfa(p.amount)} · ${p.status.replace("_", " ")}`}</span></li>)}</ul>
         </fieldset>
       )}
 

@@ -11,7 +11,10 @@ export default function PayPanel(p: Props) {
   const [mode, setMode] = useState<"online" | "mobile">(p.online ? "online" : "mobile");
   const [part, setPart] = useState<"tout" | "acompte">("tout");
   const [deposit, setDeposit] = useState(Math.round(p.due / 2 / 100) * 100 || p.due);
-  const [f, setF] = useState({ name: "", phone: "", email: "", reference: "", operator: p.tmoney ? "tmoney" : "flooz" });
+  const [f, setF] = useState({ name: "", phone: "", email: "", operator: p.tmoney ? "tmoney" : "flooz" });
+  const [proof, setProof] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [declared, setDeclared] = useState(p.hasPending);
@@ -31,7 +34,10 @@ export default function PayPanel(p: Props) {
   }
   async function declare(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setErrors({});
-    const res = await fetch(`/api/factures/${p.token}/declarer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ amount, operator: f.operator, reference: f.reference, phone: f.phone }) });
+    if (!proof) { setBusy(false); setErrors({ proof: "Ajoutez la capture d'écran de votre paiement." }); return; }
+    const fd = new FormData();
+    fd.append("amount", String(amount)); fd.append("operator", f.operator); fd.append("phone", f.phone); fd.append("proof", proof);
+    const res = await fetch(`/api/factures/${p.token}/declarer`, { method: "POST", body: fd });
     const d = await res.json().catch(() => ({}));
     setBusy(false);
     if (res.ok) { setDeclared(true); return; }
@@ -91,7 +97,7 @@ export default function PayPanel(p: Props) {
               ) : declared ? (
                 <div className="pay-ok" role="status">
                   <b>Paiement en cours de vérification</b>
-                  <p>Antoine a été prévenu. Dès qu'il confirme la réception, la facture passe en « Payée ». Gardez le SMS de confirmation.</p>
+                  <p>Antoine a reçu votre capture. Dès qu'il confirme la réception, la facture passe en « Payée ». Gardez le SMS de confirmation.</p>
                 </div>
               ) : numbers.length ? (
                 <form onSubmit={declare} className="form" noValidate>
@@ -104,17 +110,31 @@ export default function PayPanel(p: Props) {
                       </ul>
                       <span className="mono">Motif à indiquer : {p.number}</span>
                     </li>
-                    <li>Indiquez ci-dessous la référence reçue par SMS.</li>
+                    <li>Faites une capture d'écran du SMS ou de l'application qui confirme le transfert, puis ajoutez-la ci-dessous.</li>
                   </ol>
                   {numbers.length > 1 && (
                     <div className="chips">
                       {numbers.map((x) => <label key={x.key} className="chip"><input type="radio" name="op" id={`op-${x.key}`} checked={f.operator === x.key} onChange={() => setF({ ...f, operator: x.key })} /><span>{x.label}</span></label>)}
                     </div>
                   )}
-                  <div className="field-row">
-                    <label className={`field${errors.phone ? " invalid" : ""}`}><span>Numéro qui a envoyé</span><input id="decl-phone" type="tel" inputMode="tel" value={f.phone} onChange={set("phone")} placeholder="90 00 00 00" />{errors.phone && <span className="err">{errors.phone}</span>}</label>
-                    <label className={`field${errors.reference ? " invalid" : ""}`}><span>Référence du SMS</span><input id="decl-ref" value={f.reference} onChange={set("reference")} placeholder="Ex. TM2611080012" />{errors.reference && <span className="err">{errors.reference}</span>}</label>
-                  </div>
+                  <label className={`proof-drop${proof ? " has" : ""}${errors.proof ? " invalid" : ""}`}>
+                    <input id="decl-proof" type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0] ?? null; setProof(file); setErrors({}); setPreview(file ? URL.createObjectURL(file) : ""); }} />
+                    {preview ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={preview} alt="Aperçu de la capture du paiement" />
+                        <span className="proof-change">Changer la capture</span>
+                      </>
+                    ) : (
+                      <span className="proof-empty">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" /><circle cx="9" cy="10" r="1.8" stroke="currentColor" strokeWidth="1.6" /><path d="M21 16l-5-5-9 8" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
+                        <b>Ajouter la capture du paiement</b>
+                        <small>Photo ou capture d'écran du SMS de confirmation</small>
+                      </span>
+                    )}
+                  </label>
+                  {errors.proof && <p className="err">{errors.proof}</p>}
+                  <label className={`field${errors.phone ? " invalid" : ""}`}><span>Numéro qui a envoyé l'argent</span><input id="decl-phone" type="tel" inputMode="tel" value={f.phone} onChange={set("phone")} placeholder="90 00 00 00" />{errors.phone && <span className="err">{errors.phone}</span>}</label>
                   {errors.amount && <p className="err">{errors.amount}</p>}
                   {errors.form && <p className="err" role="alert">{errors.form}</p>}
                   <button className="btn" disabled={busy}>{busy ? "Envoi…" : "J'ai payé"}</button>

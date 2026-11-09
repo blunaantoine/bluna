@@ -23,7 +23,7 @@ formulaire de contact relié aux projets, et espace admin avec notifications.
 - Envoyez sur WhatsApp, en un clic, le **lien de la facture** ou le **lien de l'espace client** (toutes ses factures).
 - Le client ouvre le lien, choisit sa facture, touche « Payer maintenant » : le panneau de paiement s'ouvre.
   - **Paiement en ligne FedaPay** : T-Money, Flooz, Visa, Mastercard. La facture passe en « Payée » toute seule.
-  - **Transfert manuel** : le client envoie l'argent à vos numéros et donne la référence du SMS ; vous validez d'un clic.
+  - **Transfert manuel** : le client envoie l'argent à vos numéros et ajoute la capture d'écran du paiement ; vous la recevez (Telegram / e-mail) et validez d'un clic.
 - Vous êtes prévenu (Telegram / e-mail) à chaque paiement. Encaissement manuel possible (espèces, virement).
 - La facture se télécharge en PDF depuis le téléphone du client.
 
