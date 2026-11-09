@@ -2,8 +2,9 @@ import { db } from "./db";
 import { fcfa, invoiceUrl } from "./invoices";
 import { resendEnabled, sendEmail } from "./resend";
 import { profile } from "@/content/site";
+import { getPaymentMethods, KINDS } from "./payment-methods";
 
-const METHOD: Record<string, string> = { fedapay: "Paiement en ligne (FedaPay)", mobile: "Mobile Money", especes: "Espèces", virement: "Virement" };
+const METHOD: Record<string, string> = { fedapay: "Paiement en ligne (FedaPay)", mobile: "Mobile Money", especes: "Espèces", virement: "Virement", carte: "Carte bancaire", autre: "Autre moyen" };
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 const dateFr = (d: Date) => d.toLocaleString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lome" });
 
@@ -16,7 +17,7 @@ export async function buildReceipt(paymentId: string) {
   const number = `${inv.number}-R${index || 1}`;
   const paidAt = p.paidOn ?? p.confirmedAt ?? p.createdAt;
   const left = Math.max(0, inv.total - inv.amountPaid);
-  const method = p.method === "mobile" ? `Mobile Money (${p.provider})` : METHOD[p.method] ?? p.method;
+  const method = p.provider && p.method !== "fedapay" ? `${METHOD[p.method] ?? p.method} (${p.provider})` : METHOD[p.method] ?? p.method;
   const link = invoiceUrl(inv.token);
   const first = inv.client.name.split(" ")[0];
   const rows: [string, string][] = [
@@ -25,6 +26,8 @@ export async function buildReceipt(paymentId: string) {
     ...(inv.discount > 0 ? [["Remise" + (inv.discountLabel ? ` (${inv.discountLabel})` : ""), `− ${fcfa(inv.discount)}`] as [string, string]] : []),
     ["Total de la facture", fcfa(inv.total)], ["Reste à payer", left ? fcfa(left) : "0 FCFA — facture réglée"],
   ];
+  // Moyens de paiement en vigueur (gérés dans l'admin), pour les prochains règlements
+  const ways = (await getPaymentMethods()).map((m) => ({ title: `${m.label} · ${KINDS[m.kind] ?? m.kind}`, lines: [m.value, m.holder && `Au nom de ${m.holder}`, m.details].filter(Boolean) as string[] }));
   const subject = `Votre reçu ${number} — ${fcfa(p.amount)} — ${profile.studio}`;
   const html = `<!doctype html><html lang="fr"><body style="margin:0;background:#f3f1ec;font-family:Helvetica,Arial,sans-serif;color:#16130e">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f1ec;padding:28px 12px"><tr><td align="center">
@@ -37,12 +40,14 @@ export async function buildReceipt(paymentId: string) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e4e2dc;font-size:14px">
 ${rows.map(([a, b]) => `<tr><td style="padding:10px 0;border-bottom:1px solid #e4e2dc;color:#6b6b73">${esc(a)}</td><td align="right" style="padding:10px 0;border-bottom:1px solid #e4e2dc;font-weight:bold">${esc(b)}</td></tr>`).join("")}
 </table>
+${ways.length ? `<p style="margin:26px 0 8px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#6b6b73">${left ? `Pour régler le reste (motif : ${esc(inv.number)})` : "Nos moyens de paiement"}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px">${ways.map((w) => `<tr><td style="padding:8px 12px;background:#faf9f6;border-radius:8px;border-bottom:4px solid #fff"><b>${esc(w.title)}</b>${w.lines.map((l) => `<br><span style="color:#3a3a40">${esc(l).replace(/\n/g, "<br>")}</span>`).join("")}</td></tr>`).join("")}</table>` : ""}
 <p style="margin:26px 0 0"><a href="${link}" style="display:inline-block;background:#0d0d0e;color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:999px;font-size:14px;font-weight:bold">Voir ma facture</a></p>
 <p style="margin:22px 0 0;font-size:13px;color:#6b6b73">Depuis votre facture, vous pouvez la télécharger en PDF. Une question ? Répondez à cet e-mail ou écrivez sur WhatsApp au ${esc(profile.phone)}.</p>
 </td></tr>
 <tr><td style="padding:16px 28px;background:#faf9f6;font-size:12px;color:#8d8d96">${esc(profile.studio)} · ${esc(profile.name)} · ${esc(profile.city)} · ${esc(profile.email)}</td></tr>
 </table></td></tr></table></body></html>`;
-  const text = [`Reçu de paiement — ${profile.studio}`, "", `Merci ${first}, votre paiement de ${fcfa(p.amount)} a bien été reçu.`, "", ...rows.map(([a, b]) => `${a} : ${b}`), "", `Voir la facture : ${link}`, "", `${profile.studio} · ${profile.phone} · ${profile.email}`].join("\n");
+  const text = [`Reçu de paiement — ${profile.studio}`, "", `Merci ${first}, votre paiement de ${fcfa(p.amount)} a bien été reçu.`, "", ...rows.map(([a, b]) => `${a} : ${b}`), ...(ways.length ? ["", left ? `Pour régler le reste (motif : ${inv.number}) :` : "Nos moyens de paiement :", ...ways.map((w) => `- ${w.title} : ${w.lines.join(" · ")}`)] : []), "", `Voir la facture : ${link}`, "", `${profile.studio} · ${profile.phone} · ${profile.email}`].join("\n");
   return { subject, html, text, number, payment: p };
 }
 

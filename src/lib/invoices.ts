@@ -64,7 +64,7 @@ export function toPublic(inv: Invoice & { client: Client; payments: Payment[] })
     client: { name: inv.client.name, company: inv.client.company, token: inv.client.token },
     payments: inv.payments
       // Un paiement en ligne abandonné reste « en attente » chez nous : on ne montre que les transferts déclarés.
-      .filter((p) => p.status === "valide" || (p.status === "en_attente" && p.method === "mobile"))
+      .filter((p) => p.status === "valide" || (p.status === "en_attente" && p.method !== "fedapay"))
       .map((p) => ({ id: p.id, amount: p.amount, method: p.method, status: p.status, createdAt: p.createdAt, confirmedAt: p.confirmedAt, reference: p.reference, paidOn: p.paidOn })),
   };
 }

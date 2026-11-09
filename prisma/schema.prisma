@@ -114,3 +114,16 @@ model Payment {
   createdAt     DateTime  @default(now())
   confirmedAt   DateTime?
 }
+
+/// Moyen de paiement affiché au client (gérable depuis l'admin, rien de secret ici).
+model PaymentMethod {
+  id        String   @id @default(cuid())
+  kind      String   // mobile | banque | carte | autre
+  label     String   // ex. « T-Money », « Flooz (Moov) », « Ecobank », « Wave »
+  value     String   // numéro, IBAN / numéro de compte, numéro de carte, adresse…
+  holder    String   @default("") // titulaire
+  details   String   @default("") // précisions : code banque, SWIFT, consignes…
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}

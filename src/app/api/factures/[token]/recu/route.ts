@@ -29,7 +29,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   // Paiements concernés : celui indiqué, sinon les paiements validés ou en vérification de cette facture
   const targets = b.paymentId
     ? inv.payments.filter((p) => p.id === b.paymentId)
-    : inv.payments.filter((p) => p.status === "valide" || (p.status === "en_attente" && p.method === "mobile"));
+    : inv.payments.filter((p) => p.status === "valide" || (p.status === "en_attente" && p.method !== "fedapay"));
   if (!targets.length) return NextResponse.json({ error: "Aucun paiement à confirmer pour cette facture." }, { status: 404 });
 
   if (!inv.client.email) await db.client.update({ where: { id: inv.clientId }, data: { email } });

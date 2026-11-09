@@ -3,7 +3,7 @@ import { parseLines } from "./invoices";
 
 export type Period = { year: number; month: number | null }; // month 1-12, null = année entière
 
-const METHOD: Record<string, string> = { fedapay: "Paiement en ligne", mobile: "Mobile Money", especes: "Espèces", virement: "Virement" };
+const METHOD: Record<string, string> = { fedapay: "Paiement en ligne", mobile: "Mobile Money", especes: "Espèces", virement: "Virement", carte: "Carte bancaire", autre: "Autre moyen" };
 export const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
 const range = ({ year, month }: Period) => {
@@ -30,7 +30,7 @@ export async function buildReport(period: Period) {
   // Répartition par moyen de paiement (Mobile Money détaillé par opérateur)
   const byMethod = new Map<string, number>();
   for (const p of inPeriod) {
-    const k = p.method === "mobile" ? `Mobile Money · ${p.provider || "?"}` : METHOD[p.method] ?? p.method;
+    const k = p.provider && p.method !== "fedapay" ? `${METHOD[p.method] ?? p.method} · ${p.provider}` : METHOD[p.method] ?? p.method;
     byMethod.set(k, (byMethod.get(k) ?? 0) + p.amount);
   }
   // Meilleurs clients (encaissements de la période)
@@ -71,7 +71,7 @@ export async function buildReport(period: Period) {
     monthly,
     payments: inPeriod.sort((a, b) => +payDate(a) - +payDate(b)).map((p) => ({
       date: payDate(p).toISOString(), client: p.invoice.client.name, invoice: p.invoice.number, title: p.invoice.title,
-      method: p.method === "mobile" ? `Mobile Money (${p.provider})` : METHOD[p.method] ?? p.method, reference: p.reference, amount: p.amount,
+      method: p.provider && p.method !== "fedapay" ? `${METHOD[p.method] ?? p.method} (${p.provider})` : METHOD[p.method] ?? p.method, reference: p.reference, amount: p.amount,
     })),
     unpaid: open.map((i) => ({ number: i.number, client: i.client.name, title: i.title, due: i.dueAt?.toISOString() ?? null, overdue: !!i.dueAt && i.dueAt < now, remaining: i.total - i.amountPaid, token: i.token })),
   };

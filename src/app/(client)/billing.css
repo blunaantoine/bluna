@@ -171,3 +171,13 @@
 .pay-discount { justify-self: start; padding: .35rem .7rem; border-radius: 999px; background: rgba(127,224,166,.12); border: 1px solid rgba(127,224,166,.35); color: var(--live) !important; font-size: var(--s-xs) !important; }
 .totals dd { white-space: nowrap; }
 .totals dt { min-width: 0; }
+
+/* Moyens de paiement sur la facture (gérés dans l'admin) */
+.paper-pay { display: grid; gap: .7rem; padding: 1.1rem 1.3rem; border-radius: 10px; border: 1px solid var(--rule); break-inside: avoid; }
+.paper-pay ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .8rem 1.4rem; }
+.paper-pay li { display: grid; gap: .15rem; font-size: .85rem; line-height: 1.35; }
+.paper-pay small { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; opacity: .6; }
+.paper-pay .pp-val { font-family: var(--f-mono), monospace; font-size: .95rem; font-weight: 600; letter-spacing: .02em; word-break: break-all; }
+.paper-pay .pp-det { opacity: .75; white-space: pre-line; }
+.pay-numbers .pm-extra { font-size: .72rem; color: var(--silver-lo); white-space: pre-line; }
+.pay-numbers b { word-break: break-all; }

@@ -8,11 +8,12 @@ import { fcfa, remaining, siteUrl } from "@/lib/invoices";
 import { sendAlert, sendAlertWithPhoto } from "@/lib/notify";
 import { proofDir } from "@/lib/uploads";
 import { analyzePayment, verdictLabel } from "@/lib/receipt-ai";
+import { getPaymentMethods } from "@/lib/payment-methods";
 
 const MAX = 12 * 1024 * 1024;
 
 /**
- * Le client signale un transfert Mobile Money et joint la capture d'écran du paiement.
+ * Le client signale un transfert (Mobile Money, virement…) et joint la capture d'écran du paiement.
  * Antoine reçoit la capture (Telegram / e-mail) et valide dans l'admin.
  */
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
@@ -24,7 +25,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   if (!form) return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   const due = remaining(inv);
   const amount = Math.round(Number(form.get("amount")) || 0);
-  const operator = form.get("operator") === "flooz" ? "Flooz" : "T-Money";
+  // Moyen choisi par le client (géré dans l'admin). « operator » reste accepté pour les anciennes pages.
+  const methods = await getPaymentMethods();
+  const chosen = methods.find((m) => m.id === form.get("methodId"));
+  const legacy = form.get("operator");
+  const operator = chosen?.label ?? (legacy === "flooz" ? "Flooz" : legacy === "tmoney" ? "T-Money" : methods[0]?.label ?? "Transfert");
+  const method = ({ banque: "virement", carte: "carte", autre: "autre" } as Record<string, string>)[chosen?.kind ?? ""] ?? "mobile";
   const payerPhone = String(form.get("phone") || "").trim().slice(0, 40);
   const file = form.get("proof");
 
@@ -35,7 +41,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   if (hasProof && !(file as File).type.startsWith("image/")) errors.proof = "La capture doit être une image (photo ou capture d'écran).";
   else if (hasProof && (file as File).size > MAX) errors.proof = "Image trop lourde (12 Mo maximum).";
   if (Object.keys(errors).length) return NextResponse.json({ errors }, { status: 422 });
-  if (inv.payments.filter((p) => p.status === "en_attente" && p.method === "mobile").length >= 3)
+  if (inv.payments.filter((p) => p.status === "en_attente" && p.method !== "fedapay").length >= 3)
     return NextResponse.json({ error: "Plusieurs paiements sont déjà en cours de vérification. Antoine vous recontacte." }, { status: 429 });
 
   // Ré-encodage : vérifie que c'est une vraie image, retire les métadonnées (GPS…) et allège le fichier.
@@ -51,7 +57,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
     await writeFile(path.join(proofDir(), name), jpeg);
   }
 
-  const payment = await db.payment.create({ data: { invoiceId: inv.id, amount, method: "mobile", provider: operator, payerName: inv.client.name, payerPhone, proof: name } });
+  const payment = await db.payment.create({ data: { invoiceId: inv.id, amount, method, provider: operator, payerName: inv.client.name, payerPhone, proof: name } });
 
   const title = `À vérifier : ${fcfa(amount)} par ${operator} — facture ${inv.number}`;
   const base = `${inv.client.name} indique avoir envoyé ${fcfa(amount)} par ${operator}${payerPhone ? ` depuis le ${payerPhone}` : ""}.`;

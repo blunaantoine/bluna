@@ -2,8 +2,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import ReceiptPrompt from "./ReceiptPrompt";
+import type { PublicMethod } from "@/lib/payment-methods";
 
-type Props = { token: string; number: string; due: number; allowDeposit: boolean; online: boolean; autoOpen: boolean; tmoney: string; flooz: string; hasPending: boolean; receiptEnabled?: boolean; clientEmail?: string; discount?: number; discountLabel?: string };
+type Props = { token: string; number: string; due: number; allowDeposit: boolean; online: boolean; autoOpen: boolean; methods: PublicMethod[]; hasPending: boolean; receiptEnabled?: boolean; clientEmail?: string; discount?: number; discountLabel?: string };
 
 const fmt = (n: number) => `${new Intl.NumberFormat("fr-FR").format(n).replace(/ | /g, " ")} FCFA`;
 
@@ -12,7 +13,7 @@ export default function PayPanel(p: Props) {
   const [mode, setMode] = useState<"online" | "mobile">(p.online ? "online" : "mobile");
   const [part, setPart] = useState<"tout" | "acompte">("tout");
   const [deposit, setDeposit] = useState(Math.round(p.due / 2 / 100) * 100 || p.due);
-  const [f, setF] = useState({ operator: p.tmoney ? "tmoney" : "flooz" });
+  const [methodId, setMethodId] = useState(p.methods[0]?.id ?? "");
   const [proof, setProof] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
@@ -36,7 +37,7 @@ export default function PayPanel(p: Props) {
   async function declare(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setErrors({});
     const fd = new FormData();
-    fd.append("amount", String(amount)); fd.append("operator", f.operator); if (proof) fd.append("proof", proof);
+    fd.append("amount", String(amount)); fd.append("methodId", methodId); if (proof) fd.append("proof", proof);
     const res = await fetch(`/api/factures/${p.token}/declarer`, { method: "POST", body: fd });
     const d = await res.json().catch(() => ({}));
     setBusy(false);
@@ -44,7 +45,8 @@ export default function PayPanel(p: Props) {
     setErrors(d.errors ?? { form: d.error || "L'envoi a échoué. Réessayez." });
   }
   const copy = async (txt: string, key: string) => { try { await navigator.clipboard.writeText(txt.replace(/\s/g, "")); setCopied(key); setTimeout(() => setCopied(""), 2000); } catch {} };
-  const numbers = [p.tmoney && { key: "tmoney", label: "T-Money", n: p.tmoney }, p.flooz && { key: "flooz", label: "Flooz (Moov)", n: p.flooz }].filter(Boolean) as { key: string; label: string; n: string }[];
+  const numbers = p.methods;
+  const allMobile = numbers.every((m) => m.kind === "mobile");
 
   return (
     <div className="pay-card" id="pay-sheet">
@@ -58,7 +60,7 @@ export default function PayPanel(p: Props) {
           Payer maintenant
         </motion.button>
       )}
-      {!open && <p className="pay-methods">{p.online ? "T-Money · Flooz · Visa · Mastercard" : "T-Money · Flooz (Moov)"}</p>}
+      {!open && <p className="pay-methods">{p.online ? "T-Money · Flooz · Visa · Mastercard" : numbers.map((m) => m.label).join(" · ")}</p>}
 
       <AnimatePresence initial={false}>
         {open && (
@@ -93,25 +95,33 @@ export default function PayPanel(p: Props) {
               ) : declared ? (
                 <div className="pay-ok" role="status">
                   <b>Paiement en cours de vérification</b>
-                  <p>Antoine a été prévenu. Dès qu'il confirme la réception, la facture passe en « Payée ». Gardez le SMS de confirmation.</p>
+                  <p>Antoine a été prévenu. Dès qu'il confirme la réception, la facture passe en « Payée ». Gardez la confirmation du paiement.</p>
                   {p.receiptEnabled && declaredId && <ReceiptPrompt token={p.token} paymentId={declaredId} defaultEmail={p.clientEmail} pending autoOpen delay={500} />}
                 </div>
               ) : numbers.length ? (
                 <form onSubmit={declare} className="form" noValidate>
                   <ol className="pay-steps">
-                    <li>Envoyez <b>{fmt(amount)}</b> à l'un de ces numéros :
+                    <li>Envoyez <b>{fmt(amount)}</b> {numbers.length > 1 ? (allMobile ? "à l'un de ces numéros" : "par l'un de ces moyens") : allMobile ? "à ce numéro" : "par ce moyen"} :
                       <ul className="pay-numbers">
                         {numbers.map((x) => (
-                          <li key={x.key}><span><small>{x.label}</small><b>{x.n}</b></span><button type="button" className="btn btn-ghost btn-sm" onClick={() => copy(x.n, x.key)}>{copied === x.key ? "Copié" : "Copier"}</button></li>
+                          <li key={x.id}>
+                            <span>
+                              <small>{x.label}</small>
+                              {x.value && <b>{x.value}</b>}
+                              {x.holder && <span className="pm-extra">Au nom de {x.holder}</span>}
+                              {x.details && <span className="pm-extra">{x.details}</span>}
+                            </span>
+                            {x.value && <button type="button" className="btn btn-ghost btn-sm" onClick={() => copy(x.value, x.id)}>{copied === x.id ? "Copié" : "Copier"}</button>}
+                          </li>
                         ))}
                       </ul>
                       <span className="mono">Motif à indiquer : {p.number}</span>
                     </li>
-                    <li>Touchez « J'ai payé ». Vous pouvez joindre la capture du SMS de confirmation : c'est facultatif, mais cela accélère la vérification.</li>
+                    <li>{numbers.length > 1 ? "Indiquez le moyen utilisé, puis touchez" : "Touchez"} « J'ai payé ». Vous pouvez joindre la capture de la confirmation : c'est facultatif, mais cela accélère la vérification.</li>
                   </ol>
                   {numbers.length > 1 && (
                     <div className="chips">
-                      {numbers.map((x) => <label key={x.key} className="chip"><input type="radio" name="op" id={`op-${x.key}`} checked={f.operator === x.key} onChange={() => setF({ ...f, operator: x.key })} /><span>{x.label}</span></label>)}
+                      {numbers.map((x) => <label key={x.id} className="chip"><input type="radio" name="op" id={`op-${x.id}`} checked={methodId === x.id} onChange={() => setMethodId(x.id)} /><span>{x.label}</span></label>)}
                     </div>
                   )}
                   <label className={`proof-drop${proof ? " has" : ""}${errors.proof ? " invalid" : ""}`}>
@@ -126,7 +136,7 @@ export default function PayPanel(p: Props) {
                       <span className="proof-empty">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" /><circle cx="9" cy="10" r="1.8" stroke="currentColor" strokeWidth="1.6" /><path d="M21 16l-5-5-9 8" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
                         <b>Ajouter la capture <span className="opt">(facultatif)</span></b>
-                        <small>Photo ou capture d'écran du SMS de confirmation</small>
+                        <small>Photo ou capture d'écran du SMS ou du reçu de paiement</small>
                       </span>
                     )}
                   </label>

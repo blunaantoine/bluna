@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db";
-import { paymentNumbers } from "@/content/site";
+import { mobileNumbers } from "./payment-methods";
 
 import { ocrAvailable, readReceiptOcr } from "./receipt-ocr";
 
@@ -89,7 +89,7 @@ export async function readReceiptClaude(jpeg: Buffer): Promise<{ receipt: Receip
 
 /** Compare la capture avec le paiement déclaré et la facture. */
 export async function checkReceipt(r: Receipt, ctx: { paymentId: string; declaredAmount: number; operator: string; remaining: number }): Promise<{ checks: Check[]; verdict: Analysis["verdict"] }> {
-  const ours = [paymentNumbers.tmoney, paymentNumbers.flooz].map(digits8).filter(Boolean);
+  const ours = (await mobileNumbers()).map(digits8).filter(Boolean);
   const checks: Check[] = [];
   checks.push({ label: "Preuve de paiement", ok: r.is_payment_receipt, detail: r.is_payment_receipt ? "L'image montre un transfert." : "L'image ne ressemble pas à une confirmation de transfert." });
   checks.push({ label: "Transfert réussi", ok: r.status === "reussi" ? true : r.status === "inconnu" ? null : false, detail: { reussi: "Statut « réussi » visible.", echec: "La capture indique un échec.", en_attente: "La capture indique un transfert en attente.", inconnu: "Statut non visible." }[r.status] });
@@ -97,8 +97,10 @@ export async function checkReceipt(r: Receipt, ctx: { paymentId: string; declare
   const to = digits8(r.recipient_number);
   checks.push({ label: "Envoyé à votre numéro", ok: !to ? null : ours.includes(to), detail: !to ? "Numéro du destinataire absent de la capture." : ours.includes(to) ? `Destinataire ${to} : c'est bien vous.` : `Destinataire ${to} : ce n'est pas un de vos numéros.` });
   if (r.operator !== "Inconnu" && r.operator !== "Autre") {
-    const same = r.operator === ctx.operator;
-    checks.push({ label: "Opérateur", ok: same, detail: same ? `${r.operator}.` : `Capture ${r.operator}, déclaré ${ctx.operator}.` });
+    const family = (s: string) => (/flooz|moov/i.test(s) ? "Flooz" : /t[\s-]?money|togocom/i.test(s) ? "T-Money" : null);
+    const declared = family(ctx.operator);
+    const same = !declared || declared === r.operator;
+    if (declared) checks.push({ label: "Opérateur", ok: same, detail: same ? `${r.operator}.` : `Capture ${r.operator}, déclaré ${ctx.operator}.` });
   }
   if (r.reference) {
     const dup = await db.payment.findFirst({ where: { id: { not: ctx.paymentId }, reference: r.reference, status: { in: ["valide", "en_attente"] } }, include: { invoice: true } });

@@ -85,8 +85,6 @@ NOTIFY_EMAIL="blunaantoine@gmail.com"
 PAIEMENT_EN_LIGNE="non"
 FEDAPAY_SECRET_KEY=""
 FEDAPAY_ENV="sandbox"
-PAY_TMONEY_NUMBER="+228 71 99 81 55"
-PAY_FLOOZ_NUMBER="+228 96 22 28 21"
 
 # Reçus par e-mail (Resend) : clé API + adresse d'envoi sur le domaine vérifié dans Resend
 RESEND_API_KEY=""

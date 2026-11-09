@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { fedapayEnabled } from "@/lib/fedapay";
 import { fcfa, linesTotal, STATUS_LABEL, toPublic } from "@/lib/invoices";
-import { paymentNumbers, profile } from "@/content/site";
+import { profile } from "@/content/site";
+import { getPaymentMethods, KINDS, toPublicMethod } from "@/lib/payment-methods";
 import { offersInLines, shortConditions } from "@/content/offers";
 import PayPanel from "@/components/billing/PayPanel";
 import PrintButton from "@/components/billing/PrintButton";
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const dateFr = (d: Date) => new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-const METHOD: Record<string, string> = { fedapay: "Paiement en ligne", mobile: "Mobile Money", especes: "Espèces", virement: "Virement" };
+const METHOD: Record<string, string> = { fedapay: "Paiement en ligne", mobile: "Mobile Money", especes: "Espèces", virement: "Virement", carte: "Carte bancaire", autre: "Autre moyen" };
 
 export default async function InvoicePage({ params, searchParams }: Props) {
   const { token } = await params;
@@ -36,6 +37,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
   const subtotal = linesTotal(inv.items);
   const payable = inv.remaining > 0 && (inv.status === "envoyee" || inv.status === "partielle");
   const statusKey = inv.overdue ? "retard" : inv.status;
+  const methods = (await getPaymentMethods()).map(toPublicMethod);
   const clientEmail = (await db.client.findUnique({ where: { token: inv.client.token }, select: { email: true } }))?.email ?? "";
 
   return (
@@ -122,6 +124,23 @@ export default async function InvoicePage({ params, searchParams }: Props) {
             </section>
           ))}
 
+          {inv.status !== "payee" && inv.status !== "annulee" && methods.length > 0 && (
+            <section className="paper-pay" aria-label="Moyens de paiement">
+              <span className="lbl">Moyens de paiement · motif : {inv.number}</span>
+              <ul>
+                {methods.map((m) => (
+                  <li key={m.id}>
+                    <small>{KINDS[m.kind] ?? m.kind}</small>
+                    <b>{m.label}</b>
+                    {m.value && <span className="pp-val">{m.value}</span>}
+                    {m.holder && <span>Au nom de {m.holder}</span>}
+                    {m.details && <span className="pp-det">{m.details}</span>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {inv.notes && <p className="paper-notes">{inv.notes}</p>}
           {inv.status === "payee" && <div className="stamp" aria-label="Facture payée">Payée{inv.paidAt ? <small>{dateFr(inv.paidAt)}</small> : null}</div>}
           <p className="paper-foot">Merci pour votre confiance. Montants en francs CFA (XOF).</p>
@@ -135,12 +154,11 @@ export default async function InvoicePage({ params, searchParams }: Props) {
               allowDeposit={inv.allowDeposit}
               online={fedapayEnabled()}
               autoOpen={payer === "1"}
-              tmoney={paymentNumbers.tmoney}
-              flooz={paymentNumbers.flooz}
+              methods={methods}
               number={inv.number}
               discount={inv.discount}
               discountLabel={inv.discountLabel}
-              hasPending={inv.payments.some((p) => p.status === "en_attente" && p.method === "mobile")}
+              hasPending={inv.payments.some((p) => p.status === "en_attente" && p.method !== "fedapay")}
               receiptEnabled={resendEnabled()}
               clientEmail={clientEmail}
             />

@@ -3,7 +3,8 @@ import Link from "next/link";
 import OffersPricing from "@/components/OffersPricing";
 import Reveal from "@/components/Reveal";
 import { comparison, conditions, offers } from "@/content/offers";
-import { paymentNumbers, profile } from "@/content/site";
+import { profile } from "@/content/site";
+import { getPaymentMethods, KINDS } from "@/lib/payment-methods";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -11,8 +12,8 @@ export const metadata: Metadata = {
   description: "Offres de suivi post-livraison : votre application reste sûre, rapide et fiable. Trois formules mensuelles à partir de 10 000 FCFA.",
 };
 
-export default function SuiviPage() {
-  const { tmoney, flooz } = paymentNumbers;
+export default async function SuiviPage() {
+  const methods = await getPaymentMethods();
   return (
     <>
       <section className="wrap suivi-hero">
@@ -54,10 +55,12 @@ export default function SuiviPage() {
           <Reveal className="cond-card" delay={0.08}>
             <h2 className="display">Moyens de paiement</h2>
             <div className="pay-ways">
-              <div><span className="pw-icon">M</span><span><b>Mobile Money</b>{tmoney && <span>T-Money : {tmoney}</span>}{flooz && <span>Flooz : {flooz}</span>}<span>Au nom de {profile.name}</span></span></div>
+              {methods.map((m) => (
+                <div key={m.id}><span className="pw-icon">{m.label.charAt(0).toUpperCase()}</span><span><b>{m.label}</b><span>{KINDS[m.kind] ?? m.kind}{m.value ? ` : ${m.value}` : ""}</span>{m.holder && <span>Au nom de {m.holder}</span>}{m.details && <span>{m.details}</span>}</span></div>
+              ))}
               <div><span className="pw-icon">E</span><span><b>Espèces</b><span>Remise en main propre contre reçu signé.</span></span></div>
             </div>
-            <p className="mono">Indiquez le nom de la formule et le mois concerné lors de chaque paiement Mobile Money. Chaque mois, vous recevez votre facture par lien WhatsApp, à régler depuis votre espace client.</p>
+            <p className="mono">Indiquez le nom de la formule et le mois concerné lors de chaque paiement. Chaque mois, vous recevez votre facture par lien WhatsApp, à régler depuis votre espace client.</p>
           </Reveal>
         </div>
       </section>

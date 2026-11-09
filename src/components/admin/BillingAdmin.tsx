@@ -23,7 +23,7 @@ type Invoice = {
 const fcfa = (n: number) => `${new Intl.NumberFormat("fr-FR").format(Math.round(n)).replace(/ | /g, " ")} FCFA`;
 const dateFr = (d: string) => new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 const LABEL: Record<string, string> = { brouillon: "Brouillon", envoyee: "À payer", partielle: "Acompte reçu", payee: "Payée", annulee: "Annulée" };
-const METHOD: Record<string, string> = { fedapay: "FedaPay", mobile: "Mobile Money", especes: "Espèces", virement: "Virement" };
+const METHOD: Record<string, string> = { fedapay: "FedaPay", mobile: "Mobile Money", especes: "Espèces", virement: "Virement", carte: "Carte bancaire", autre: "Autre moyen" };
 const waNumber = (p: string) => { const d = p.replace(/\D/g, ""); return d.length === 8 ? `228${d}` : d; };
 const wa = (phone: string, text: string) => `https://wa.me/${waNumber(phone)}?text=${encodeURIComponent(text)}`;
 
@@ -51,7 +51,7 @@ export default function BillingAdmin({ projects, online = false }: { projects: {
   useEffect(() => { load(); const t = setInterval(load, 20000); return () => clearInterval(t); }, [load]);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(""), 3500); return () => clearTimeout(t); }, [toast]);
 
-  const pending = useMemo(() => (invoices ?? []).flatMap((i) => i.payments.filter((p) => p.status === "en_attente" && p.method === "mobile").map((p) => ({ p, i }))), [invoices]);
+  const pending = useMemo(() => (invoices ?? []).flatMap((i) => i.payments.filter((p) => p.status === "en_attente" && p.method !== "fedapay").map((p) => ({ p, i }))), [invoices]);
   const open = (invoices ?? []).filter((i) => i.status === "envoyee" || i.status === "partielle");
   const toCollect = open.reduce((a, i) => a + i.total - i.amountPaid, 0);
   const month = new Date(); month.setDate(1); month.setHours(0, 0, 0, 0);
@@ -307,7 +307,7 @@ function InvoiceEditor({ inv, clients, projects, onClose, onDone, onClientCreate
 
       {inv && inv.payments.length > 0 && (
         <fieldset><legend>Paiements</legend>
-          <ul className="pay-hist">{inv.payments.map((p) => <li key={p.id}><span>{dateFr(p.createdAt)} · {METHOD[p.method] ?? p.method}{p.provider && p.method === "mobile" ? ` (${p.provider})` : ""}{p.reference ? ` · réf. ${p.reference}` : ""}{p.proof ? <> · <a href={`/api/admin/paiements/${p.id}/preuve`} target="_blank" rel="noopener">capture</a></> : null}</span><span className={`status s-${p.status === "valide" ? "repondu" : p.status === "en_attente" ? "nouveau" : ""}`}>{p.status === "valide" ? fcfa(p.amount) : `${fcfa(p.amount)} · ${p.status.replace("_", " ")}`}</span>{p.status === "valide" && <ReceiptButton p={p} />}</li>)}</ul>
+          <ul className="pay-hist">{inv.payments.map((p) => <li key={p.id}><span>{dateFr(p.createdAt)} · {METHOD[p.method] ?? p.method}{p.provider && p.method !== "fedapay" && p.provider !== METHOD[p.method] ? ` (${p.provider})` : ""}{p.reference ? ` · réf. ${p.reference}` : ""}{p.proof ? <> · <a href={`/api/admin/paiements/${p.id}/preuve`} target="_blank" rel="noopener">capture</a></> : null}</span><span className={`status s-${p.status === "valide" ? "repondu" : p.status === "en_attente" ? "nouveau" : ""}`}>{p.status === "valide" ? fcfa(p.amount) : `${fcfa(p.amount)} · ${p.status.replace("_", " ")}`}</span>{p.status === "valide" && <ReceiptButton p={p} />}</li>)}</ul>
         </fieldset>
       )}
 

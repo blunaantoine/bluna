@@ -71,7 +71,7 @@ Par défaut, seul le transfert Mobile Money est proposé. Pour réactiver FedaPa
 3. Dans FedaPay > Webhooks, ajoutez `https://votre-domaine/api/webhooks/fedapay`.
 4. Faites un paiement test, puis passez à la clé live et `FEDAPAY_ENV="live"`.
 
-Sans clé FedaPay, seul le transfert manuel est proposé (numéros `PAY_TMONEY_NUMBER` et `PAY_FLOOZ_NUMBER`).
+Sans clé FedaPay, seul le transfert manuel est proposé. Les numéros, comptes bancaires et autres moyens de paiement se gèrent dans l’admin, onglet « Paiement » (`/admin/moyens`) : ils s’affichent sur le panneau « Payer », la facture (et son PDF), la page Suivi et les reçus.
 Le statut d'un paiement est toujours revérifié auprès de FedaPay : ni un faux lien de retour, ni un faux webhook ne peuvent valider une facture.
 
 ## Contenu
