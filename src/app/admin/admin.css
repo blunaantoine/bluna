@@ -132,3 +132,75 @@ fieldset[disabled] { opacity: .6; }
 .proof-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .proj-help { display: grid; gap: .5rem; justify-content: stretch; }
 .proj-help b { color: var(--silver-hi); }
+
+/* Lecture automatique des captures */
+.verify-row { flex-wrap: wrap; align-items: flex-start; }
+.ai-panel { flex: 1 1 100%; order: 3; display: grid; gap: .6rem; padding: .8rem .9rem; border-radius: 10px; border: 1px solid var(--line); background: var(--ink); font-size: var(--s-sm); }
+.ai-panel.v-conforme { border-color: rgba(127,224,166,.45); }
+.ai-panel.v-suspect { border-color: rgba(255,138,122,.55); }
+.ai-head { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; }
+.ai-head .link-arrow { margin-left: auto; }
+.ai-verdict { padding: .3rem .65rem; border-radius: 999px; font: 700 .68rem/1 var(--f-mono), monospace; letter-spacing: .08em; text-transform: uppercase; }
+.ai-verdict.v-conforme { background: var(--live); color: var(--ink); }
+.ai-verdict.v-a_verifier { background: #ffd27a; color: var(--ink); }
+.ai-verdict.v-suspect { background: var(--alert); color: var(--ink); }
+.ai-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .4rem 1rem; }
+.ai-facts div { display: grid; gap: .1rem; }
+.ai-facts dt { font-size: .7rem; color: var(--silver-lo); text-transform: uppercase; letter-spacing: .06em; }
+.ai-facts dd { color: var(--silver-hi); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ai-checks { list-style: none; display: grid; gap: .3rem; }
+.ai-checks li { display: flex; gap: .5rem; align-items: baseline; color: var(--silver); }
+.ai-checks li b { width: 18px; height: 18px; border-radius: 50%; display: inline-grid; place-items: center; font-size: .7rem; flex: none; background: var(--panel-2); }
+.ai-checks li.ok b { background: rgba(127,224,166,.2); color: var(--live); }
+.ai-checks li.ko b { background: rgba(255,138,122,.2); color: var(--alert); }
+.ai-checks strong { color: var(--silver-hi); font-weight: 700; }
+.ai-notes { color: var(--silver-lo); font-style: italic; }
+
+/* Rapports */
+.report { --s-invoiced: #3987e5; --s-collected: #d95926; }
+.report-controls { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.report-body { display: grid; gap: 1.2rem; transition: opacity .2s; }
+.report-body.is-loading { opacity: .5; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+@media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { display: grid; gap: .3rem; padding: 1.1rem 1.2rem; background: var(--graphite); min-width: 0; }
+.kpi-label { font: 500 var(--s-xs)/1 var(--f-mono), monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--silver-lo); }
+.kpi-value { font: 400 clamp(1.5rem, 3vw, 2.1rem)/1.1 var(--f-display), serif; color: var(--silver-hi); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.kpi-sub { font-size: var(--s-xs); color: var(--silver-lo); }
+.report-section { display: grid; gap: .8rem; padding: 1.1rem 1.2rem; border-radius: 12px; border: 1px solid var(--line); background: var(--graphite); min-width: 0; align-content: start; }
+.report-section h2 { font: 400 1.25rem/1.2 var(--f-display), serif; color: var(--silver-hi); }
+.report-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2rem; }
+@media (max-width: 1000px) { .report-cols { grid-template-columns: 1fr; } }
+.rtable { width: 100%; border-collapse: collapse; font-size: var(--s-sm); font-variant-numeric: tabular-nums; }
+.rtable th { text-align: left; font: 500 .68rem/1 var(--f-mono), monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--silver-lo); padding: .5rem .4rem; border-bottom: 1px solid var(--line); }
+.rtable td { padding: .55rem .4rem; border-bottom: 1px solid var(--line); color: var(--text); vertical-align: top; }
+.rtable .num { text-align: right; white-space: nowrap; color: var(--silver-hi); }
+.rtable tfoot td { font-weight: 700; color: var(--silver-hi); border-bottom: 0; border-top: 1px solid var(--silver-lo); }
+.rtable.compact td { padding: .45rem .2rem; }
+.table-scroll { overflow-x: auto; }
+.table-scroll .rtable { min-width: 640px; }
+.empty-note { color: var(--silver-lo); font-size: var(--s-sm); }
+.chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.legend { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: var(--s-sm); color: var(--silver); }
+.legend span, .chart-tip span { display: inline-flex; align-items: center; gap: .45rem; }
+.legend i, .chart-tip i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.chart-wrap { position: relative; }
+.chart-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart-wrap .tick { fill: var(--silver-lo); font: 400 11px var(--f-mono), monospace; }
+.chart-wrap g:focus { outline: none; }
+.chart-wrap g:focus-visible rect { stroke: var(--silver); }
+.chart-tip { position: absolute; top: 0; transform: translateX(-50%); pointer-events: none; display: grid; gap: .3rem; padding: .6rem .75rem; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); font-size: var(--s-xs); color: var(--silver); white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+.chart-tip b { color: var(--silver-hi); }
+.chart-tip strong { color: var(--silver-hi); margin-left: auto; padding-left: .8rem; font-variant-numeric: tabular-nums; }
+.chart-table summary { cursor: pointer; font-size: var(--s-sm); color: var(--silver-lo); }
+.chart-table[open] summary { margin-bottom: .6rem; }
+
+@media print {
+  .admin, body { background: #fff !important; }
+  .no-print, .cursor, body::before { display: none !important; }
+  .admin-wrap { padding: 0; }
+  .report { --graphite: #fff; --line: #ccc; --silver-hi: #111; --silver-lo: #555; --text: #222; --silver: #333; --panel-2: #fff; }
+  .report-section, .kpi-grid { break-inside: avoid; }
+  .chart-table { display: block; }
+  .chart-table summary { display: none; }
+}

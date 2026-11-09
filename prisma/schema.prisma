@@ -101,6 +101,11 @@ model Payment {
   payerPhone    String    @default("")
   /// Capture d'écran du transfert (fichier privé, visible seulement dans l'admin)
   proof         String    @default("")
+  /// Lecture automatique de la capture par l'IA (JSON) et verdict : conforme | a_verifier | suspect
+  aiData        String    @default("")
+  aiVerdict     String    @default("")
+  /// Date et heure du transfert lues sur la capture
+  paidOn        DateTime?
   createdAt     DateTime  @default(now())
   confirmedAt   DateTime?
 }

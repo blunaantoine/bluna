@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { fcfa, remaining, siteUrl } from "@/lib/invoices";
 import { sendAlertWithPhoto } from "@/lib/notify";
 import { proofDir } from "@/lib/uploads";
+import { analyzePayment, verdictLabel } from "@/lib/receipt-ai";
 
 const MAX = 12 * 1024 * 1024;
 
@@ -48,10 +49,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   await mkdir(proofDir(), { recursive: true });
   await writeFile(path.join(proofDir(), name), jpeg);
 
-  await db.payment.create({ data: { invoiceId: inv.id, amount, method: "mobile", provider: operator, payerName: inv.client.name, payerPhone, proof: name } });
+  const payment = await db.payment.create({ data: { invoiceId: inv.id, amount, method: "mobile", provider: operator, payerName: inv.client.name, payerPhone, proof: name } });
+
+  // Lecture de la capture par l'IA (si ANTHROPIC_API_KEY est configurée)
+  const a = await analyzePayment(payment.id, jpeg);
+  const aiText = a
+    ? `\n\nLecture automatique : ${verdictLabel[a.verdict].toUpperCase()}\n` +
+      a.checks.map((c) => `${c.ok === true ? "✅" : c.ok === false ? "❌" : "❔"} ${c.label} : ${c.detail}`).join("\n")
+    : "";
   await sendAlertWithPhoto(
-    `À vérifier : ${fcfa(amount)} par ${operator} — facture ${inv.number}`,
-    `${inv.client.name} indique avoir envoyé ${fcfa(amount)} par ${operator} depuis le ${payerPhone}. Capture jointe.\nVérifiez la réception puis validez : ${siteUrl()}/admin/factures`,
+    `${a?.verdict === "suspect" ? "⚠️ Suspect" : "À vérifier"} : ${fcfa(amount)} par ${operator} — facture ${inv.number}`,
+    `${inv.client.name} indique avoir envoyé ${fcfa(amount)} par ${operator} depuis le ${payerPhone}. Capture jointe.${aiText}\nValidez dans l'admin : ${siteUrl()}/admin/factures`,
     jpeg,
   );
   return NextResponse.json({ ok: true });

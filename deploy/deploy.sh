@@ -84,6 +84,9 @@ FEDAPAY_SECRET_KEY=""
 FEDAPAY_ENV="sandbox"
 PAY_TMONEY_NUMBER="+228 71 99 81 55"
 PAY_FLOOZ_NUMBER="+228 96 22 28 21"
+
+# Lecture automatique des captures de paiement (clé sur platform.claude.com)
+ANTHROPIC_API_KEY=""
 CONF
   chmod 600 "$DATA_DIR/.env"
   ok "Configuration enregistrée dans $DATA_DIR/.env"

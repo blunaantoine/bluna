@@ -5,7 +5,14 @@ import AdminNav from "./AdminNav";
 
 type Line = { label: string; qty: number; unitPrice: number };
 type Client = { id: string; name: string; company: string; phone: string; email: string; token: string; invoiceCount?: number; due?: number };
-type Payment = { id: string; amount: number; method: string; status: string; provider: string; reference: string; payerPhone: string; proof: string; createdAt: string; transactionId: string | null };
+type Payment = { id: string; amount: number; method: string; status: string; provider: string; reference: string; payerPhone: string; proof: string; createdAt: string; transactionId: string | null; aiData: string; aiVerdict: string; paidOn: string | null };
+type Analysis = {
+  verdict: "conforme" | "a_verifier" | "suspect";
+  receipt: { operator: string; status: string; amount: number | null; fees: number | null; reference: string | null; datetime: string | null; sender_number: string | null; recipient_number: string | null; recipient_name: string | null; confidence: string; notes: string };
+  checks: { label: string; ok: boolean | null; detail: string }[];
+};
+const VERDICT: Record<string, string> = { conforme: "Conforme", a_verifier: "À vérifier", suspect: "Suspect" };
+const parseAi = (s: string): Analysis | null => { try { return s ? (JSON.parse(s) as Analysis) : null; } catch { return null; } };
 type Invoice = {
   id: string; number: string; token: string; title: string; items: Line[]; discount: number; total: number; amountPaid: number;
   allowDeposit: boolean; status: string; notes: string; projectSlug: string | null; issuedAt: string; dueAt: string | null; paidAt: string | null;
@@ -87,6 +94,7 @@ export default function BillingAdmin({ projects }: { projects: { slug: string; t
                   </a>
                 ) : null}
                 <span className="verify-info"><b>{fcfa(p.amount)}</b> par {p.provider} · {i.client.name} · {i.number}<br /><span className="mono">depuis {p.payerPhone}{p.reference ? ` · réf. ${p.reference}` : ""} · {dateFr(p.createdAt)}</span>{p.proof ? <><br /><a className="link-arrow" href={`/api/admin/paiements/${p.id}/preuve`} target="_blank" rel="noopener">Voir la capture ↗</a></> : null}</span>
+                <AiPanel p={p} onRetry={() => act(`/api/admin/paiements/${p.id}/analyser`, {}, "Capture relue.", "POST")} />
                 <span className="pact">
                   <button className="btn btn-sm" onClick={() => act(`/api/admin/paiements/${p.id}`, { action: "valider" }, "Paiement validé, la facture est à jour.")}>J'ai bien reçu</button>
                   <button className="btn btn-ghost btn-sm" onClick={() => act(`/api/admin/paiements/${p.id}`, { action: "refuser" }, "Paiement refusé.")}>Pas reçu</button>
@@ -166,6 +174,41 @@ export default function BillingAdmin({ projects }: { projects: { slug: string; t
       </AnimatePresence>
       <AnimatePresence>{toast && <motion.div className="toast" initial={{ y: 80, opacity: 0, x: "-50%" }} animate={{ y: 0, opacity: 1, x: "-50%" }} exit={{ y: 80, opacity: 0, x: "-50%" }} role="status">{toast}</motion.div>}</AnimatePresence>
     </>
+  );
+}
+
+/** Résultat de la lecture automatique de la capture (IA). */
+function AiPanel({ p, onRetry }: { p: Payment; onRetry: () => Promise<void> }) {
+  const [busy, setBusy] = useState(false);
+  const a = parseAi(p.aiData);
+  const retry = async () => { setBusy(true); await onRetry(); setBusy(false); };
+  if (!p.proof) return null;
+  if (!a) return (
+    <div className="ai-panel">
+      <span className="mono">Lecture automatique indisponible pour cette capture.</span>
+      <button className="link-arrow" onClick={retry} disabled={busy}>{busy ? "Lecture…" : "Lire la capture"}</button>
+    </div>
+  );
+  const r = a.receipt;
+  return (
+    <div className={`ai-panel v-${a.verdict}`}>
+      <div className="ai-head">
+        <span className={`ai-verdict v-${a.verdict}`}>{VERDICT[a.verdict]}</span>
+        <span className="mono">Lecture automatique · lisibilité {r.confidence}</span>
+        <button className="link-arrow" onClick={retry} disabled={busy}>{busy ? "Lecture…" : "Relire"}</button>
+      </div>
+      <dl className="ai-facts">
+        <div><dt>Montant lu</dt><dd>{r.amount != null ? fcfa(r.amount) : "—"}{r.fees ? ` (+${fcfa(r.fees)} de frais)` : ""}</dd></div>
+        <div><dt>Référence</dt><dd>{r.reference ?? "—"}</dd></div>
+        <div><dt>Date</dt><dd>{r.datetime ? new Date(r.datetime).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "—"}</dd></div>
+        <div><dt>Opérateur</dt><dd>{r.operator}</dd></div>
+        <div><dt>De → à</dt><dd>{r.sender_number ?? "?"} → {r.recipient_number ?? "?"}{r.recipient_name ? ` (${r.recipient_name})` : ""}</dd></div>
+      </dl>
+      <ul className="ai-checks">
+        {a.checks.map((c) => <li key={c.label} className={c.ok === true ? "ok" : c.ok === false ? "ko" : "na"}><b>{c.ok === true ? "✓" : c.ok === false ? "✕" : "?"}</b> <span><strong>{c.label}</strong> — {c.detail}</span></li>)}
+      </ul>
+      {r.notes && <p className="ai-notes">{r.notes}</p>}
+    </div>
   );
 }
 

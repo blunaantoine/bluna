@@ -52,7 +52,7 @@ export async function refreshInvoice(invoiceId: string) {
   });
 }
 
-export type PublicInvoice = Omit<Invoice, "items" | "clientId"> & { items: Line[]; remaining: number; overdue: boolean; client: Pick<Client, "name" | "company" | "token">; payments: Pick<Payment, "id" | "amount" | "method" | "status" | "createdAt" | "confirmedAt" | "reference">[] };
+export type PublicInvoice = Omit<Invoice, "items" | "clientId"> & { items: Line[]; remaining: number; overdue: boolean; client: Pick<Client, "name" | "company" | "token">; payments: Pick<Payment, "id" | "amount" | "method" | "status" | "createdAt" | "confirmedAt" | "reference" | "paidOn">[] };
 
 export function toPublic(inv: Invoice & { client: Client; payments: Payment[] }): PublicInvoice {
   const { clientId: _c, items, ...rest } = inv;
@@ -65,7 +65,7 @@ export function toPublic(inv: Invoice & { client: Client; payments: Payment[] })
     payments: inv.payments
       // Un paiement en ligne abandonné reste « en attente » chez nous : on ne montre que les transferts déclarés.
       .filter((p) => p.status === "valide" || (p.status === "en_attente" && p.method === "mobile"))
-      .map((p) => ({ id: p.id, amount: p.amount, method: p.method, status: p.status, createdAt: p.createdAt, confirmedAt: p.confirmedAt, reference: p.reference })),
+      .map((p) => ({ id: p.id, amount: p.amount, method: p.method, status: p.status, createdAt: p.createdAt, confirmedAt: p.confirmedAt, reference: p.reference, paidOn: p.paidOn })),
   };
 }
 

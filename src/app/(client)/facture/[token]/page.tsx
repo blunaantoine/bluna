@@ -86,7 +86,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
               <span className="lbl">Paiements</span>
               <ul>
                 {inv.payments.map((p) => (
-                  <li key={p.id}><span>{dateFr(p.confirmedAt ?? p.createdAt)} · {METHOD[p.method] ?? p.method}{p.reference ? ` · réf. ${p.reference}` : ""}</span><span>{p.status === "valide" ? fcfa(p.amount) : `${fcfa(p.amount)} (en vérification)`}</span></li>
+                  <li key={p.id}><span>{dateFr(p.paidOn ?? p.confirmedAt ?? p.createdAt)} · {METHOD[p.method] ?? p.method}{p.reference ? ` · réf. ${p.reference}` : ""}</span><span>{p.status === "valide" ? fcfa(p.amount) : `${fcfa(p.amount)} (en vérification)`}</span></li>
                 ))}
               </ul>
             </div>
