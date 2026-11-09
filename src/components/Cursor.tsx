@@ -14,7 +14,7 @@ export default function Cursor() {
     const over = (e: MouseEvent) => {
       const t = e.target as Element;
       const v = t.closest<HTMLElement>("[data-cursor]");
-      const h = t.closest("a, button, label, input, textarea, select");
+      const h = t.closest("[data-secret]") ? null : t.closest("a, button, label, input, textarea, select");
       setMode(v ? "view" : h ? "hover" : ""); setLabel(v?.dataset.cursor ?? "");
     };
     const loop = () => {

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { profile } from "@/content/site";
 
 export default function Footer() {
@@ -10,7 +9,6 @@ export default function Footer() {
           <a href={profile.instagram.url} target="_blank" rel="noopener">Instagram</a>
           <a href={profile.tiktok.url} target="_blank" rel="noopener">TikTok</a>
           <a href={profile.github.url} target="_blank" rel="noopener">GitHub</a>
-          <Link href="/admin">Espace admin</Link>
         </nav>
       </div>
     </footer>

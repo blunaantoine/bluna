@@ -89,7 +89,7 @@ export default async function Home() {
           <Reveal className="about-copy" delay={0.1}>
             <p className="eyebrow">À propos</p>
             <h2 className="display section-title">Graphiste de formation, développeur par passion.</h2>
-            <p>Je suis {profile.name}, fondateur d'<strong>{profile.studio}</strong> à Lomé. J'ai commencé par les logos et les affiches, puis j'ai voulu que mes clients puissent aussi vendre, réserver et s'organiser en ligne.</p>
+            <p>Je suis {profile.name}, fondateur d'<Link href="/admin" className="secret-link" tabIndex={-1} data-secret aria-hidden="true"><strong>{profile.studio}</strong></Link> à Lomé. J'ai commencé par les logos et les affiches, puis j'ai voulu que mes clients puissent aussi vendre, réserver et s'organiser en ligne.</p>
             <p>Aujourd'hui, je dessine l'identité d'une marque et je développe le site ou l'application qui va avec : une boutique de luxe, un cabinet de santé, un sommet national, une application de services à domicile.</p>
             <ul className="chips-static">{["Illustrator", "Photoshop", "Canva", "Figma", "Next.js", "React", "Android", "Photographie"].map((s) => <li key={s}>{s}</li>)}</ul>
           </Reveal>
