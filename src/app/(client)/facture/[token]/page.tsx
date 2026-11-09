@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { fedapayEnabled } from "@/lib/fedapay";
 import { fcfa, linesTotal, STATUS_LABEL, toPublic } from "@/lib/invoices";
-import { profile } from "@/content/site";
+import { paymentNumbers, profile } from "@/content/site";
 import { offersInLines, shortConditions } from "@/content/offers";
 import PayPanel from "@/components/billing/PayPanel";
 import PrintButton from "@/components/billing/PrintButton";
@@ -66,6 +66,11 @@ export default async function InvoicePage({ params, searchParams }: Props) {
           </div>
 
           <h2 className="paper-title">{inv.title}</h2>
+          {inv.discount > 0 && (
+            <p className="paper-discount">
+              <b>Remise de {fcfa(inv.discount)}</b>{inv.discountLabel ? ` — ${inv.discountLabel}` : ""} · soit {Math.round((inv.discount / subtotal) * 100)} % de réduction, déjà déduite du total.
+            </p>
+          )}
 
           <div className="table-scroll">
             <table className="lines">
@@ -79,7 +84,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
           </div>
 
           <dl className="totals">
-            {inv.discount > 0 && <><div><dt>Sous-total</dt><dd>{fcfa(subtotal)}</dd></div><div><dt>Remise</dt><dd>− {fcfa(inv.discount)}</dd></div></>}
+            {inv.discount > 0 && <><div><dt>Sous-total</dt><dd>{fcfa(subtotal)}</dd></div><div className="discount-row"><dt>Remise{inv.discountLabel ? ` (${inv.discountLabel})` : ""}</dt><dd>− {fcfa(inv.discount)}</dd></div></>}
             <div className="grand"><dt>Total</dt><dd>{fcfa(inv.total)}</dd></div>
             {inv.amountPaid > 0 && <div><dt>Déjà payé</dt><dd>− {fcfa(inv.amountPaid)}</dd></div>}
             {inv.amountPaid > 0 && <div className="grand"><dt>Reste à payer</dt><dd>{fcfa(inv.remaining)}</dd></div>}
@@ -130,9 +135,11 @@ export default async function InvoicePage({ params, searchParams }: Props) {
               allowDeposit={inv.allowDeposit}
               online={fedapayEnabled()}
               autoOpen={payer === "1"}
-              tmoney={process.env.PAY_TMONEY_NUMBER || ""}
-              flooz={process.env.PAY_FLOOZ_NUMBER || ""}
+              tmoney={paymentNumbers.tmoney}
+              flooz={paymentNumbers.flooz}
               number={inv.number}
+              discount={inv.discount}
+              discountLabel={inv.discountLabel}
               hasPending={inv.payments.some((p) => p.status === "en_attente" && p.method === "mobile")}
               receiptEnabled={resendEnabled()}
               clientEmail={clientEmail}

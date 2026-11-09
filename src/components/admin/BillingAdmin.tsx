@@ -15,7 +15,7 @@ type Analysis = {
 const VERDICT: Record<string, string> = { conforme: "Conforme", a_verifier: "À vérifier", suspect: "Suspect" };
 const parseAi = (s: string): Analysis | null => { try { return s ? (JSON.parse(s) as Analysis) : null; } catch { return null; } };
 type Invoice = {
-  id: string; number: string; token: string; title: string; items: Line[]; discount: number; total: number; amountPaid: number;
+  id: string; number: string; token: string; title: string; items: Line[]; discount: number; discountLabel: string; total: number; amountPaid: number;
   allowDeposit: boolean; status: string; notes: string; projectSlug: string | null; issuedAt: string; dueAt: string | null; paidAt: string | null;
   overdue: boolean; client: Client; payments: Payment[];
 };
@@ -258,6 +258,7 @@ function InvoiceEditor({ inv, clients, projects, onClose, onDone, onClientCreate
   const [title, setTitle] = useState(inv?.title ?? "");
   const [items, setItems] = useState<Line[]>(inv?.items ?? [{ label: "", qty: 1, unitPrice: 0 }]);
   const [discount, setDiscount] = useState(inv?.discount ?? 0);
+  const [discountLabel, setDiscountLabel] = useState(inv?.discountLabel ?? "");
   const [dueAt, setDueAt] = useState(inv?.dueAt ? inv.dueAt.slice(0, 10) : new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10));
   const [allowDeposit, setAllowDeposit] = useState(inv?.allowDeposit ?? false);
   const [notes, setNotes] = useState(inv?.notes ?? "");
@@ -278,7 +279,7 @@ function InvoiceEditor({ inv, clients, projects, onClose, onDone, onClientCreate
       if (!r.ok) { setErr(r.data.error || "Client invalide."); setBusy(false); return; }
       cid = r.data.client.id; onClientCreated(r.data.client);
     }
-    const body = { clientId: cid, title, items, discount, dueAt, allowDeposit, notes, projectSlug, status };
+    const body = { clientId: cid, title, items, discount, discountLabel, dueAt, allowDeposit, notes, projectSlug, status };
     const r = inv ? await api(`/api/admin/factures/${inv.id}`, "PATCH", body) : await api("/api/admin/factures", "POST", body);
     setBusy(false);
     if (!r.ok) { setErr(r.data.error || "Enregistrement impossible."); return; }
@@ -355,7 +356,9 @@ function InvoiceEditor({ inv, clients, projects, onClose, onDone, onClientCreate
             <select aria-label="Ajouter une formule de suivi" className="admin-select" value="" onChange={(e) => {
               const [id, per] = e.target.value.split(":"); const o = offers.find((x) => x.id === id); if (!o) return;
               const month = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
-              const line = per === "an" ? { label: `Formule de suivi « ${o.title} » — 12 mois (2 mois offerts)`, qty: 1, unitPrice: yearlyPrice(o.monthly) } : { label: `Formule de suivi « ${o.title} » — ${month}`, qty: 1, unitPrice: o.monthly };
+              // Offre annuelle : 12 mois au prix normal, puis une remise visible de 2 mois offerts
+              const line = per === "an" ? { label: `Formule de suivi « ${o.title} » — 12 mois`, qty: 12, unitPrice: o.monthly } : { label: `Formule de suivi « ${o.title} » — ${month}`, qty: 1, unitPrice: o.monthly };
+              if (per === "an") { setDiscount((d) => (d || 0) + o.monthly * 2); setDiscountLabel((l) => l || "Offre annuelle : 2 mois offerts"); }
               setItems((x) => [...x.filter((l) => l.label || l.unitPrice), line]);
               const name = /^suivi/i.test(o.title) ? o.title : `Suivi ${o.title}`;
               if (!title) setTitle(per === "an" ? `${name} — offre annuelle` : `${name} — ${month}`);
@@ -367,7 +370,11 @@ function InvoiceEditor({ inv, clients, projects, onClose, onDone, onClientCreate
         </div>
         <div className="field-row">
           <label className="field"><span>Remise (FCFA)</span><input id="inv-discount" type="number" min={0} step={500} value={discount} onChange={(e) => setDiscount(+e.target.value)} /></label>
-          <div className="le-sum"><span className="mono">Total</span><strong>{fcfa(Math.max(0, total))}</strong></div>
+          <label className="field"><span>Motif de la remise (affiché au client)</span><input id="inv-discount-label" value={discountLabel} onChange={(e) => setDiscountLabel(e.target.value)} placeholder="Ex. Client fidèle, offre de lancement…" disabled={!discount} /></label>
+          <div className="le-sum">
+            {discount > 0 && <span className="mono">Sous-total {fcfa(subtotal)} · remise − {fcfa(discount)}</span>}
+            <span className="mono">Total</span><strong>{fcfa(Math.max(0, total))}</strong>
+          </div>
         </div>
       </fieldset>
 

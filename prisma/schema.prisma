@@ -71,6 +71,8 @@ model Invoice {
   /// Lignes en JSON : [{ label, qty, unitPrice }]
   items       String    @default("[]")
   discount    Int       @default(0)
+  /// Motif affiché sur la facture (ex. « Offre annuelle : 2 mois offerts »)
+  discountLabel String  @default("")
   total       Int
   amountPaid  Int       @default(0)
   allowDeposit Boolean  @default(false)

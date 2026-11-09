@@ -10,6 +10,12 @@ export const profile = {
   github: { label: "blunaantoine", url: "https://github.com/blunaantoine" },
 };
 
+/** Numéros Mobile Money affichés au client quand il touche « Payer ». */
+export const paymentNumbers = {
+  tmoney: process.env.PAY_TMONEY_NUMBER || "+228 71 99 81 55",
+  flooz: process.env.PAY_FLOOZ_NUMBER || "+228 96 22 28 21",
+};
+
 export const categories = [
   { id: "tout", label: "Tout" },
   { id: "identite", label: "Identité & logos" },

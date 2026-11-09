@@ -47,6 +47,7 @@ export default async function EnvelopePage({ params }: { params: Promise<{ token
         amount={fcfa(paid ? inv.total : due)}
         to={`/facture/${inv.token}${paid || inv.status === "annulee" ? "" : "?payer=1"}`}
         paid={paid}
+        discount={inv.discount > 0 ? `− ${fcfa(inv.discount)}` : ""}
       />
     </div>
   );

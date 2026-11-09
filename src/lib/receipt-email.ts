@@ -22,6 +22,7 @@ export async function buildReceipt(paymentId: string) {
   const rows: [string, string][] = [
     ["Reçu n°", number], ["Facture", `${inv.number} — ${inv.title}`], ["Date du paiement", dateFr(paidAt)], ["Moyen de paiement", method],
     ...(p.reference ? [["Référence", p.reference] as [string, string]] : []),
+    ...(inv.discount > 0 ? [["Remise" + (inv.discountLabel ? ` (${inv.discountLabel})` : ""), `− ${fcfa(inv.discount)}`] as [string, string]] : []),
     ["Total de la facture", fcfa(inv.total)], ["Reste à payer", left ? fcfa(left) : "0 FCFA — facture réglée"],
   ];
   const subject = `Votre reçu ${number} — ${fcfa(p.amount)} — ${profile.studio}`;

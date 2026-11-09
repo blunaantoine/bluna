@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db";
+import { paymentNumbers } from "@/content/site";
 
 import { ocrAvailable, readReceiptOcr } from "./receipt-ocr";
 
@@ -88,7 +89,7 @@ export async function readReceiptClaude(jpeg: Buffer): Promise<{ receipt: Receip
 
 /** Compare la capture avec le paiement déclaré et la facture. */
 export async function checkReceipt(r: Receipt, ctx: { paymentId: string; declaredAmount: number; operator: string; remaining: number }): Promise<{ checks: Check[]; verdict: Analysis["verdict"] }> {
-  const ours = [process.env.PAY_TMONEY_NUMBER, process.env.PAY_FLOOZ_NUMBER].map(digits8).filter(Boolean);
+  const ours = [paymentNumbers.tmoney, paymentNumbers.flooz].map(digits8).filter(Boolean);
   const checks: Check[] = [];
   checks.push({ label: "Preuve de paiement", ok: r.is_payment_receipt, detail: r.is_payment_receipt ? "L'image montre un transfert." : "L'image ne ressemble pas à une confirmation de transfert." });
   checks.push({ label: "Transfert réussi", ok: r.status === "reussi" ? true : r.status === "inconnu" ? null : false, detail: { reussi: "Statut « réussi » visible.", echec: "La capture indique un échec.", en_attente: "La capture indique un transfert en attente.", inconnu: "Statut non visible." }[r.status] });

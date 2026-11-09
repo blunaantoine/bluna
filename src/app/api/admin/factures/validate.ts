@@ -14,6 +14,7 @@ export function invoiceInput(b: Record<string, unknown>) {
   return {
     data: {
       title, discount, total,
+      discountLabel: discount > 0 ? String(b.discountLabel || "").trim().slice(0, 120) : "",
       items: JSON.stringify(items),
       notes: String(b.notes || "").trim().slice(0, 2000),
       allowDeposit: b.allowDeposit === true,

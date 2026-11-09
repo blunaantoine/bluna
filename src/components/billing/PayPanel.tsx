@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import ReceiptPrompt from "./ReceiptPrompt";
 
-type Props = { token: string; number: string; due: number; allowDeposit: boolean; online: boolean; autoOpen: boolean; tmoney: string; flooz: string; hasPending: boolean; receiptEnabled?: boolean; clientEmail?: string };
+type Props = { token: string; number: string; due: number; allowDeposit: boolean; online: boolean; autoOpen: boolean; tmoney: string; flooz: string; hasPending: boolean; receiptEnabled?: boolean; clientEmail?: string; discount?: number; discountLabel?: string };
 
 const fmt = (n: number) => `${new Intl.NumberFormat("fr-FR").format(n).replace(/ | /g, " ")} FCFA`;
 
@@ -51,6 +51,7 @@ export default function PayPanel(p: Props) {
       <span className="eyebrow">Reste à payer</span>
       <strong className="pay-due display">{fmt(p.due)}</strong>
       <p className="mono">Facture {p.number}</p>
+      {!!p.discount && <p className="pay-discount">Remise de {fmt(p.discount)} incluse{p.discountLabel ? ` — ${p.discountLabel}` : ""}</p>}
 
       {!open && (
         <motion.button className="btn pay-open" onClick={() => setOpen(true)} whileTap={{ scale: 0.97 }}>

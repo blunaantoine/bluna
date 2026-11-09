@@ -163,3 +163,11 @@
   html, :root { background: #fff !important; color-scheme: light !important; }
   .paper-offer { background: #fff; }
 }
+
+/* Remise bien visible */
+.paper-discount { margin-top: -.6rem; padding: .7rem .9rem; border-radius: 8px; background: #e9f6ee; color: #135c37; font-size: .88rem; border: 1px solid #bfe5cf; }
+.paper-discount b { font-weight: 700; }
+.totals .discount-row, .totals .discount-row dd { color: #1f8a55; font-weight: 700; }
+.pay-discount { justify-self: start; padding: .35rem .7rem; border-radius: 999px; background: rgba(127,224,166,.12); border: 1px solid rgba(127,224,166,.35); color: var(--live) !important; font-size: var(--s-xs) !important; }
+.totals dd { white-space: nowrap; }
+.totals dt { min-width: 0; }

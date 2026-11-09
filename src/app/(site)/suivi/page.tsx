@@ -3,7 +3,7 @@ import Link from "next/link";
 import OffersPricing from "@/components/OffersPricing";
 import Reveal from "@/components/Reveal";
 import { comparison, conditions, offers } from "@/content/offers";
-import { profile } from "@/content/site";
+import { paymentNumbers, profile } from "@/content/site";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default function SuiviPage() {
-  const tmoney = process.env.PAY_TMONEY_NUMBER || "", flooz = process.env.PAY_FLOOZ_NUMBER || "";
+  const { tmoney, flooz } = paymentNumbers;
   return (
     <>
       <section className="wrap suivi-hero">

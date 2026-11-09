@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BACK, DEFS, FLAP, FRONT } from "./envelope-svg";
 
-type Props = { brand: string; client: string; reference: string; due: string; amount: string; to: string; paid: boolean };
+type Props = { brand: string; client: string; reference: string; due: string; amount: string; to: string; paid: boolean; discount?: string };
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
@@ -46,7 +46,7 @@ const FLECKS = Array.from({ length: 12 }, (_, i) => {
   return { dx: `${Math.round(Math.cos(a) * d)}%`, dy: `${Math.round(Math.sin(a) * d + 30)}%`, delay: `${(i * 23) % 80}ms` };
 });
 
-export default function Envelope({ brand, client, reference, due, amount, to, paid }: Props) {
+export default function Envelope({ brand, client, reference, due, amount, to, paid, discount }: Props) {
   const mono = (brand.trim()[0] || "O").toUpperCase();
   const seal = useMemo(() => sealSvg(mono), [mono]);
   const [stage, setStage] = useState<string[]>([]);
@@ -67,7 +67,7 @@ export default function Envelope({ brand, client, reference, due, amount, to, pa
     timers.current.push(setTimeout(() => { add("is-ready"); cta.current?.focus({ preventScroll: true }); }, T.ready));
   }
 
-  const rows = [["Référence", reference], ["Échéance", due], [paid ? "Réglée" : "Montant", amount, "total"]].filter((r) => r[1]);
+  const rows = [["Référence", reference], ["Échéance", due], ["Remise", discount ?? ""], [paid ? "Réglée" : "Montant", amount, "total"]].filter((r) => r[1]);
   const isOpen = stage.includes("is-open");
 
   return (
