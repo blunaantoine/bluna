@@ -2,6 +2,8 @@
 
 VPS : **213.156.133.226** (le même que Socline et Sonafi). Rien ne change pour ces sites.
 
+> `/opt/oqui` contient un autre projet (« Quoi ») : le site s'installe dans `/opt/oquitogo`, sur le port 3010.
+
 ## 1. DNS chez LWS (zone de oquitogo.com)
 
 | Type | Nom | Valeur | Action |
@@ -19,31 +21,31 @@ Le changement prend de quelques minutes à quelques heures.
 ## 2. Installation (en root sur le VPS)
 
 ```bash
-git clone -b refonte-portfolio https://github.com/blunaantoine/bluna.git /opt/oqui
+git clone -b refonte-portfolio https://github.com/blunaantoine/bluna.git /opt/oquitogo
 ```
 
 ```bash
-sudo bash /opt/oqui/deploy/deploy.sh
+sudo bash /opt/oquitogo/deploy/deploy.sh
 ```
 
 Le script demande le mot de passe de l'admin, trouve un port libre (à partir de 3010),
-compile le site, crée le service `oqui` et le certificat HTTPS.
+compile le site, crée le service `oquitogo` et le certificat HTTPS.
 
 ## 3. Mettre à jour plus tard
 
 ```bash
-sudo bash /opt/oqui/deploy/deploy.sh --update
+sudo bash /opt/oquitogo/deploy/deploy.sh --update
 ```
 
 ## Où sont les fichiers
 
-- Code : `/opt/oqui`
-- **Données à sauvegarder** : `/opt/oqui-data` (base `oqui.db`, images de l'admin, `.env`)
-- Journal du site : `journalctl -u oqui -f`
-- Après une modification du `.env` : `systemctl restart oqui`
+- Code : `/opt/oquitogo`
+- **Données à sauvegarder** : `/opt/oquitogo-data` (base `oquitogo.db`, images de l'admin, `.env`)
+- Journal du site : `journalctl -u oquitogo -f`
+- Après une modification du `.env` : `systemctl restart oquitogo`
 
 ## E-mail contact@oquitogo.com
 
 Vos e-mails sont hébergés chez LWS (`mail.oquitogo.com`). Créez la boîte `contact@oquitogo.com`
 dans l'espace client LWS (rubrique E-mails), puis mettez son mot de passe dans `SMTP_PASS`
-du fichier `/opt/oqui-data/.env` pour recevoir les alertes de messages et de paiements.
+du fichier `/opt/oquitogo-data/.env` pour recevoir les alertes de messages et de paiements.

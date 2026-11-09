@@ -3,19 +3,20 @@
 #  OQUI — installation / mise à jour sur le VPS (oquitogo.com)
 #
 #  Première installation (en root) :
-#    git clone -b refonte-portfolio https://github.com/blunaantoine/bluna.git /opt/oqui
-#    sudo bash /opt/oqui/deploy/deploy.sh
+#    git clone -b refonte-portfolio https://github.com/blunaantoine/bluna.git /opt/oquitogo
+#    sudo bash /opt/oquitogo/deploy/deploy.sh
 #
 #  Mise à jour plus tard :
-#    sudo bash /opt/oqui/deploy/deploy.sh --update
+#    sudo bash /opt/oquitogo/deploy/deploy.sh --update
 #
 #  Ce script ne touche PAS aux autres sites du serveur (Socline, Sonafi…) :
-#  il ajoute seulement un service « oqui » et un fichier Nginx dédié.
+#  il ajoute seulement un service « oquitogo » et un fichier Nginx dédié.
+#  (/opt/oqui contient un autre projet, « Quoi » : on ne l'utilise pas.)
 # ============================================================
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/oqui}"
-DATA_DIR="${DATA_DIR:-/opt/oqui-data}"     # base + images : jamais écrasés par une mise à jour
+APP_DIR="${APP_DIR:-/opt/oquitogo}"
+DATA_DIR="${DATA_DIR:-/opt/oquitogo-data}"     # base + images : jamais écrasés par une mise à jour
 BRANCH="${BRANCH:-refonte-portfolio}"
 DOMAIN="${DOMAIN:-oquitogo.com}"
 EMAIL_LE="${EMAIL_LE:-blunaantoine@gmail.com}"   # e-mail pour le certificat HTTPS
@@ -39,7 +40,11 @@ ok "Node $(node -v), Nginx, Certbot"
 # ── 2. Code ──────────────────────────────────────────────────
 say "Récupération du code ($BRANCH)"
 if [[ -d "$APP_DIR/.git" ]]; then
+  remote=$(git -C "$APP_DIR" remote get-url origin 2>/dev/null || true)
+  [[ "$remote" == *"blunaantoine/bluna"* ]] || fail "$APP_DIR contient un autre projet ($remote). Rien n'a été modifié. Choisissez un autre dossier : APP_DIR=/opt/autre-nom bash $0"
   git -C "$APP_DIR" fetch --depth 1 origin "$BRANCH" && git -C "$APP_DIR" checkout -q "$BRANCH" && git -C "$APP_DIR" reset -q --hard "origin/$BRANCH"
+elif [[ -e "$APP_DIR" ]]; then
+  fail "$APP_DIR existe déjà et n'est pas une copie de ce site. Rien n'a été modifié."
 else
   git clone --depth 1 -b "$BRANCH" https://github.com/blunaantoine/bluna.git "$APP_DIR"
 fi
@@ -59,13 +64,13 @@ if [[ ! -f "$DATA_DIR/.env" ]]; then
   read -r -s -p "  Choisissez le mot de passe de l'espace admin : " ADMIN_PASS; echo
   [[ ${#ADMIN_PASS} -ge 10 ]] || fail "Mot de passe trop court (10 caractères minimum)."
   cat > "$DATA_DIR/.env" <<CONF
-DATABASE_URL="file:$DATA_DIR/oqui.db"
+DATABASE_URL="file:$DATA_DIR/oquitogo.db"
 UPLOAD_DIR="$DATA_DIR/uploads"
 SITE_URL="https://$DOMAIN"
 ADMIN_PASSWORD="$ADMIN_PASS"
 SESSION_SECRET="$(openssl rand -hex 32)"
 
-# Notifications (à remplir quand vous voulez, puis : systemctl restart oqui)
+# Notifications (à remplir quand vous voulez, puis : systemctl restart oquitogo)
 TELEGRAM_BOT_TOKEN=""
 TELEGRAM_CHAT_ID=""
 SMTP_HOST="mail.$DOMAIN"
@@ -95,7 +100,7 @@ npm run build
 ok "Application compilée"
 
 # ── 6. Service systemd ───────────────────────────────────────
-cat > /etc/systemd/system/oqui.service <<UNIT
+cat > /etc/systemd/system/oquitogo.service <<UNIT
 [Unit]
 Description=OQUI - oquitogo.com (Next.js, port $PORT)
 After=network.target
@@ -112,16 +117,16 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 UNIT
-systemctl daemon-reload && systemctl enable -q oqui && systemctl restart oqui
+systemctl daemon-reload && systemctl enable -q oquitogo && systemctl restart oquitogo
 for i in $(seq 1 30); do curl -fs -o /dev/null "http://127.0.0.1:$PORT/" && break; sleep 1; done
-curl -fs -o /dev/null "http://127.0.0.1:$PORT/" || fail "Le site ne démarre pas. Regardez : journalctl -u oqui -n 50"
-ok "Service « oqui » actif"
+curl -fs -o /dev/null "http://127.0.0.1:$PORT/" || fail "Le site ne démarre pas. Regardez : journalctl -u oquitogo -n 50"
+ok "Service « oquitogo » actif"
 
 [[ $UPDATE -eq 1 ]] && { echo -e "\n\033[1;32mMise à jour terminée : https://$DOMAIN\033[0m"; exit 0; }
 
 # ── 7. Nginx + HTTPS ─────────────────────────────────────────
 say "Nginx et certificat HTTPS pour $DOMAIN et www.$DOMAIN"
-cat > /etc/nginx/conf.d/oqui.conf <<NGX
+cat > /etc/nginx/conf.d/oquitogo.conf <<NGX
 server {
     listen 80;
     listen [::]:80;
