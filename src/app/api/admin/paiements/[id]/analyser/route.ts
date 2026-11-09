@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { db } from "@/lib/db";
-import { analyzePayment, receiptAiEnabled } from "@/lib/receipt-ai";
+import { analyzePayment, receiptEngine } from "@/lib/receipt-ai";
 import { proofDir } from "@/lib/uploads";
 
 /** Relance la lecture IA de la capture d'un paiement. */
 export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!receiptAiEnabled()) return NextResponse.json({ error: "Lecture automatique désactivée : ajoutez ANTHROPIC_API_KEY dans le fichier .env du serveur." }, { status: 503 });
+  if (!(await receiptEngine())) return NextResponse.json({ error: "Lecture automatique indisponible : installez Tesseract sur le serveur (apt install tesseract-ocr tesseract-ocr-fra)." }, { status: 503 });
   const { id } = await params;
   const p = await db.payment.findUnique({ where: { id } });
   if (!p?.proof) return NextResponse.json({ error: "Ce paiement n'a pas de capture." }, { status: 404 });

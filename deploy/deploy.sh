@@ -35,7 +35,9 @@ if ! command -v node >/dev/null || [[ "$(node -v | cut -d. -f1 | tr -d v)" -lt 2
 fi
 command -v nginx >/dev/null || apt-get install -y nginx
 command -v certbot >/dev/null || apt-get install -y certbot python3-certbot-nginx
-ok "Node $(node -v), Nginx, Certbot"
+# Lecture gratuite des captures de paiement (reconnaissance de texte, sur le serveur)
+command -v tesseract >/dev/null || apt-get install -y tesseract-ocr tesseract-ocr-fra
+ok "Node $(node -v), Nginx, Certbot, Tesseract"
 
 # ── 2. Code ──────────────────────────────────────────────────
 say "Récupération du code ($BRANCH)"
@@ -85,7 +87,8 @@ FEDAPAY_ENV="sandbox"
 PAY_TMONEY_NUMBER="+228 71 99 81 55"
 PAY_FLOOZ_NUMBER="+228 96 22 28 21"
 
-# Lecture automatique des captures de paiement (clé sur platform.claude.com)
+# Lecture des captures : gratuite sur le serveur (Tesseract). Option payante plus robuste :
+# renseigner une clé Claude (platform.claude.com) pour lire avec l'IA à la place.
 ANTHROPIC_API_KEY=""
 CONF
   chmod 600 "$DATA_DIR/.env"

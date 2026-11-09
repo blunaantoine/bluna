@@ -1,14 +1,20 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db";
 
+import { ocrAvailable, readReceiptOcr } from "./receipt-ocr";
+
 /**
- * Lecture des captures de paiement Mobile Money (T-Money, Flooz) avec Claude.
- * L'IA extrait les informations ; le code compare ensuite avec la facture
- * (montant, numéro destinataire, référence déjà utilisée…). La validation
- * finale reste humaine : une capture peut être retouchée.
+ * Lecture des captures de paiement Mobile Money (T-Money, Flooz).
+ * Par défaut : lecture GRATUITE sur le serveur (Tesseract, voir receipt-ocr.ts).
+ * Option : si ANTHROPIC_API_KEY est renseignée, lecture par Claude (payante, plus robuste
+ * sur les captures inhabituelles). Le code compare ensuite avec la facture
+ * (montant, numéro destinataire, référence déjà utilisée…). La validation finale reste humaine.
  */
 
-export const receiptAiEnabled = () => !!process.env.ANTHROPIC_API_KEY;
+export async function receiptEngine(): Promise<"claude" | "ocr" | null> {
+  if (process.env.ANTHROPIC_API_KEY) return "claude";
+  return (await ocrAvailable()) ? "ocr" : null;
+}
 
 export type Receipt = {
   is_payment_receipt: boolean;
@@ -57,8 +63,8 @@ Si l'image n'est pas une preuve de transfert (photo quelconque, capture sans mon
 
 const digits8 = (s?: string | null) => (s ?? "").replace(/\D/g, "").slice(-8);
 
-/** Envoie l'image à Claude et renvoie les informations lues. */
-export async function readReceipt(jpeg: Buffer): Promise<{ receipt: Receipt; model: string }> {
+/** Option payante : envoie l'image à Claude et renvoie les informations lues. */
+export async function readReceiptClaude(jpeg: Buffer): Promise<{ receipt: Receipt; model: string }> {
   const client = new Anthropic({ timeout: 60_000, maxRetries: 2, ...(process.env.ANTHROPIC_BASE_URL ? { baseURL: process.env.ANTHROPIC_BASE_URL } : {}) });
   const response = await client.beta.messages.create({
     model: "claude-opus-5-5",
@@ -113,11 +119,12 @@ export async function checkReceipt(r: Receipt, ctx: { paymentId: string; declare
 
 /** Lit la capture d'un paiement, compare, et enregistre le résultat. N'échoue jamais. */
 export async function analyzePayment(paymentId: string, jpeg: Buffer): Promise<Analysis | null> {
-  if (!receiptAiEnabled()) return null;
+  const engine = await receiptEngine();
+  if (!engine) return null;
   const p = await db.payment.findUnique({ where: { id: paymentId }, include: { invoice: true } });
   if (!p) return null;
   try {
-    const { receipt, model } = await readReceipt(jpeg);
+    const { receipt, model } = engine === "claude" ? await readReceiptClaude(jpeg) : { receipt: (await readReceiptOcr(jpeg)).receipt, model: "lecture-serveur" };
     const { checks, verdict } = await checkReceipt(receipt, { paymentId, declaredAmount: p.amount, operator: p.provider, remaining: p.invoice.total - p.invoice.amountPaid });
     const analysis: Analysis = { receipt, checks, verdict, analyzedAt: new Date().toISOString(), model };
     const paidOn = receipt.datetime && !isNaN(+new Date(receipt.datetime)) ? new Date(receipt.datetime) : null;
