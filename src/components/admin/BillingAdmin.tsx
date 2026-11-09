@@ -5,7 +5,7 @@ import AdminNav from "./AdminNav";
 
 type Line = { label: string; qty: number; unitPrice: number };
 type Client = { id: string; name: string; company: string; phone: string; email: string; token: string; invoiceCount?: number; due?: number };
-type Payment = { id: string; amount: number; method: string; status: string; provider: string; reference: string; payerPhone: string; proof: string; createdAt: string; transactionId: string | null; aiData: string; aiVerdict: string; paidOn: string | null };
+type Payment = { id: string; amount: number; method: string; status: string; provider: string; reference: string; payerPhone: string; proof: string; createdAt: string; transactionId: string | null; aiData: string; aiVerdict: string; paidOn: string | null; receiptEmail: string; receiptSentAt: string | null };
 type Analysis = {
   verdict: "conforme" | "a_verifier" | "suspect";
   receipt: { operator: string; status: string; amount: number | null; fees: number | null; reference: string | null; datetime: string | null; sender_number: string | null; recipient_number: string | null; recipient_name: string | null; confidence: string; notes: string };
@@ -26,10 +26,10 @@ const METHOD: Record<string, string> = { fedapay: "FedaPay", mobile: "Mobile Mon
 const waNumber = (p: string) => { const d = p.replace(/\D/g, ""); return d.length === 8 ? `228${d}` : d; };
 const wa = (phone: string, text: string) => `https://wa.me/${waNumber(phone)}?text=${encodeURIComponent(text)}`;
 
-async function api<T = Record<string, unknown>>(url: string, method = "GET", body?: unknown): Promise<{ ok: boolean; data: T & { error?: string } }> {
+async function api<T = Record<string, unknown>>(url: string, method = "GET", body?: unknown): Promise<{ ok: boolean; status: number; data: T & { error?: string } }> {
   const res = await fetch(url, { method, headers: body ? { "content-type": "application/json" } : undefined, body: body ? JSON.stringify(body) : undefined, cache: "no-store" });
   if (res.status === 401) location.href = "/admin/connexion";
-  return { ok: res.ok, data: await res.json().catch(() => ({})) };
+  return { ok: res.ok, status: res.status, data: await res.json().catch(() => ({})) };
 }
 
 export default function BillingAdmin({ projects }: { projects: { slug: string; title: string }[] }) {
@@ -212,6 +212,27 @@ function AiPanel({ p, onRetry }: { p: Payment; onRetry: () => Promise<void> }) {
   );
 }
 
+/** Envoyer ou renvoyer le reçu d'un paiement validé (Resend). */
+function ReceiptButton({ p }: { p: Payment }) {
+  const [state, setState] = useState<"idle" | "busy" | "ask">("idle");
+  const [email, setEmail] = useState(p.receiptEmail);
+  const [msg, setMsg] = useState(p.receiptSentAt ? `Reçu envoyé le ${new Date(p.receiptSentAt).toLocaleDateString("fr-FR")}${p.receiptEmail ? ` à ${p.receiptEmail}` : ""}` : p.receiptEmail ? `Reçu demandé par ${p.receiptEmail}` : "");
+  async function send() {
+    setState("busy");
+    const r = await api<{ message?: string }>(`/api/admin/paiements/${p.id}/recu`, "POST", email ? { email } : {});
+    if (r.ok) { setMsg(`Reçu envoyé${email ? ` à ${email}` : ""} à l'instant.`); setState("idle"); return; }
+    if (r.status === 422) { setState("ask"); setMsg(r.data.error || ""); return; }
+    setMsg(r.data.error || "Envoi impossible."); setState("idle");
+  }
+  return (
+    <span className="receipt-row">
+      {state === "ask" && <input aria-label="E-mail du client" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e-mail du client" />}
+      <button type="button" className="link-arrow" onClick={send} disabled={state === "busy" || (state === "ask" && !email)}>{state === "busy" ? "Envoi…" : p.receiptSentAt || msg.startsWith("Reçu envoyé") ? "Renvoyer le reçu" : "Envoyer le reçu"}</button>
+      {msg && <span className="mono">{msg}</span>}
+    </span>
+  );
+}
+
 function Drawer({ title, onClose, children, onSubmit, foot }: { title: string; onClose: () => void; children: React.ReactNode; onSubmit: (e: React.FormEvent) => void; foot: React.ReactNode }) {
   return (
     <motion.div className="drawer-wrap" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -284,7 +305,7 @@ function InvoiceEditor({ inv, clients, projects, onClose, onDone, onClientCreate
 
       {inv && inv.payments.length > 0 && (
         <fieldset><legend>Paiements</legend>
-          <ul className="pay-hist">{inv.payments.map((p) => <li key={p.id}><span>{dateFr(p.createdAt)} · {METHOD[p.method] ?? p.method}{p.provider && p.method === "mobile" ? ` (${p.provider})` : ""}{p.reference ? ` · réf. ${p.reference}` : ""}{p.proof ? <> · <a href={`/api/admin/paiements/${p.id}/preuve`} target="_blank" rel="noopener">capture</a></> : null}</span><span className={`status s-${p.status === "valide" ? "repondu" : p.status === "en_attente" ? "nouveau" : ""}`}>{p.status === "valide" ? fcfa(p.amount) : `${fcfa(p.amount)} · ${p.status.replace("_", " ")}`}</span></li>)}</ul>
+          <ul className="pay-hist">{inv.payments.map((p) => <li key={p.id}><span>{dateFr(p.createdAt)} · {METHOD[p.method] ?? p.method}{p.provider && p.method === "mobile" ? ` (${p.provider})` : ""}{p.reference ? ` · réf. ${p.reference}` : ""}{p.proof ? <> · <a href={`/api/admin/paiements/${p.id}/preuve`} target="_blank" rel="noopener">capture</a></> : null}</span><span className={`status s-${p.status === "valide" ? "repondu" : p.status === "en_attente" ? "nouveau" : ""}`}>{p.status === "valide" ? fcfa(p.amount) : `${fcfa(p.amount)} · ${p.status.replace("_", " ")}`}</span>{p.status === "valide" && <ReceiptButton p={p} />}</li>)}</ul>
         </fieldset>
       )}
 

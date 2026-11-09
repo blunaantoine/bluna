@@ -7,6 +7,8 @@ import { fcfa, linesTotal, STATUS_LABEL, toPublic } from "@/lib/invoices";
 import { profile } from "@/content/site";
 import PayPanel from "@/components/billing/PayPanel";
 import PrintButton from "@/components/billing/PrintButton";
+import ReceiptPrompt from "@/components/billing/ReceiptPrompt";
+import { resendEnabled } from "@/lib/resend";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +35,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
   const subtotal = linesTotal(inv.items);
   const payable = inv.remaining > 0 && (inv.status === "envoyee" || inv.status === "partielle");
   const statusKey = inv.overdue ? "retard" : inv.status;
+  const clientEmail = (await db.client.findUnique({ where: { token: inv.client.token }, select: { email: true } }))?.email ?? "";
 
   return (
     <section className="wrap billing-page">
@@ -109,11 +112,14 @@ export default async function InvoicePage({ params, searchParams }: Props) {
               flooz={process.env.PAY_FLOOZ_NUMBER || ""}
               number={inv.number}
               hasPending={inv.payments.some((p) => p.status === "en_attente" && p.method === "mobile")}
+              receiptEnabled={resendEnabled()}
+              clientEmail={clientEmail}
             />
           ) : (
             <div className="pay-card">
               <span className="eyebrow">{inv.status === "payee" ? "Facture réglée" : "Paiement indisponible"}</span>
               <p>{inv.status === "payee" ? "Merci ! Cette facture est entièrement payée. Vous pouvez la télécharger en PDF pour vos archives." : "Cette facture a été annulée. Contactez Antoine pour toute question."}</p>
+              {inv.status === "payee" && resendEnabled() && <ReceiptPrompt token={token} defaultEmail={clientEmail} trigger={<button className="btn btn-ghost btn-sm">Recevoir le reçu par e-mail</button>} />}
             </div>
           )}
         </aside>

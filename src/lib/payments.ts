@@ -2,6 +2,7 @@ import { db } from "./db";
 import { getTransaction, mapStatus } from "./fedapay";
 import { fcfa, refreshInvoice, siteUrl } from "./invoices";
 import { sendAlert } from "./notify";
+import { sendReceiptIfRequested } from "./receipt-email";
 
 /**
  * Relit une transaction chez FedaPay et met à jour le paiement et la facture.
@@ -30,6 +31,7 @@ export async function syncFedapayPayment(transactionId: string) {
 
   if (status === "valide") {
     const inv = await refreshInvoice(payment.invoiceId);
+    await sendReceiptIfRequested(payment.id);
     const i = payment.invoice;
     await sendAlert(
       `Paiement reçu : ${fcfa(payment.amount)} — facture ${i.number}`,

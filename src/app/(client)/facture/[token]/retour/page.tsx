@@ -6,6 +6,8 @@ import { fcfa } from "@/lib/invoices";
 import { syncFedapayPayment } from "@/lib/payments";
 import ResultIcon from "@/components/billing/ResultIcon";
 import AutoRefresh from "@/components/billing/AutoRefresh";
+import ReceiptPrompt from "@/components/billing/ReceiptPrompt";
+import { resendEnabled } from "@/lib/resend";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Paiement" };
@@ -35,6 +37,7 @@ export default async function ReturnPage({ params, searchParams }: { params: Pro
   return (
     <section className="wrap billing-page result">
       {view.kind === "wait" && <AutoRefresh seconds={5} />}
+      {view.kind === "ok" && resendEnabled() && payment && <ReceiptPrompt token={inv.token} paymentId={payment.id} defaultEmail={payment.receiptEmail || inv.client.email} autoOpen />}
       <ResultIcon kind={view.kind} />
       <h1 className="display">{view.title}</h1>
       <p className="lead">{view.text}</p>

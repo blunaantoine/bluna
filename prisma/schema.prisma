@@ -106,6 +106,9 @@ model Payment {
   aiVerdict     String    @default("")
   /// Date et heure du transfert lues sur la capture
   paidOn        DateTime?
+  /// Reçu par e-mail : adresse demandée au client, et date d'envoi (Resend)
+  receiptEmail  String    @default("")
+  receiptSentAt DateTime?
   createdAt     DateTime  @default(now())
   confirmedAt   DateTime?
 }

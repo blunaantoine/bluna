@@ -204,3 +204,6 @@ fieldset[disabled] { opacity: .6; }
   .chart-table { display: block; }
   .chart-table summary { display: none; }
 }
+.pay-hist li { align-items: center; }
+.receipt-row { flex: 1 1 100%; display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.receipt-row input { padding: .4rem .6rem; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--silver-hi); font-size: var(--s-xs); min-width: 0; flex: 1 1 180px; }

@@ -87,6 +87,10 @@ FEDAPAY_ENV="sandbox"
 PAY_TMONEY_NUMBER="+228 71 99 81 55"
 PAY_FLOOZ_NUMBER="+228 96 22 28 21"
 
+# Reçus par e-mail (Resend) : clé API + adresse d'envoi sur le domaine vérifié dans Resend
+RESEND_API_KEY=""
+RESEND_FROM="OQUI <recus@$DOMAIN>"
+
 # Lecture des captures : gratuite sur le serveur (Tesseract). Option payante plus robuste :
 # renseigner une clé Claude (platform.claude.com) pour lire avec l'IA à la place.
 ANTHROPIC_API_KEY=""

@@ -62,5 +62,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
     `${inv.client.name} indique avoir envoyé ${fcfa(amount)} par ${operator} depuis le ${payerPhone}. Capture jointe.${aiText}\nValidez dans l'admin : ${siteUrl()}/admin/factures`,
     jpeg,
   );
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, paymentId: payment.id });
 }

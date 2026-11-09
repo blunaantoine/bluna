@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { resendEnabled, sendEmail } from "./resend";
 import type { Message } from "@prisma/client";
 
 type Ctx = { message: Message; projectTitle?: string | null };
@@ -46,7 +47,14 @@ type Attachment = { filename: string; content: Buffer };
 
 async function email(subject: string, text: string, replyTo?: string, attachments?: Attachment[]) {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, NOTIFY_EMAIL } = process.env;
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !NOTIFY_EMAIL) return;
+  if (!NOTIFY_EMAIL) return;
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    // Pas de SMTP : on passe par Resend s'il est configuré
+    if (!resendEnabled()) return;
+    const esc = (t: string) => t.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
+    await sendEmail({ to: NOTIFY_EMAIL, subject, text, html: `<pre style="font-family:Helvetica,Arial,sans-serif;white-space:pre-wrap">${esc(text)}</pre>`, replyTo, attachments });
+    return;
+  }
   const port = Number(SMTP_PORT || 465);
   const t = nodemailer.createTransport({ host: SMTP_HOST, port, secure: port === 465, auth: { user: SMTP_USER, pass: SMTP_PASS } });
   await t.sendMail({ from: `OQUI <${SMTP_USER}>`, to: NOTIFY_EMAIL, subject, text, replyTo: replyTo || undefined, attachments });

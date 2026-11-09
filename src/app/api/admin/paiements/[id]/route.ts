@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { refreshInvoice } from "@/lib/invoices";
 import { syncFedapayPayment } from "@/lib/payments";
+import { sendReceiptIfRequested } from "@/lib/receipt-email";
 
 /** Valider ou refuser un paiement Mobile Money déclaré, ou revérifier un paiement FedaPay. */
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -18,5 +19,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   } else return NextResponse.json({ error: "Action inconnue." }, { status: 400 });
 
   await refreshInvoice(p.invoiceId);
+  if (b.action === "valider") await sendReceiptIfRequested(id);
   return NextResponse.json({ ok: true });
 }

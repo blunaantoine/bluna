@@ -1,8 +1,9 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import ReceiptPrompt from "./ReceiptPrompt";
 
-type Props = { token: string; number: string; due: number; allowDeposit: boolean; online: boolean; autoOpen: boolean; tmoney: string; flooz: string; hasPending: boolean };
+type Props = { token: string; number: string; due: number; allowDeposit: boolean; online: boolean; autoOpen: boolean; tmoney: string; flooz: string; hasPending: boolean; receiptEnabled?: boolean; clientEmail?: string };
 
 const fmt = (n: number) => `${new Intl.NumberFormat("fr-FR").format(n).replace(/ | /g, " ")} FCFA`;
 
@@ -18,6 +19,7 @@ export default function PayPanel(p: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [declared, setDeclared] = useState(p.hasPending);
+  const [declaredId, setDeclaredId] = useState<string | null>(null);
   const [copied, setCopied] = useState("");
 
   const amount = p.allowDeposit && part === "acompte" ? Math.min(Math.max(100, deposit || 0), p.due) : p.due;
@@ -40,7 +42,7 @@ export default function PayPanel(p: Props) {
     const res = await fetch(`/api/factures/${p.token}/declarer`, { method: "POST", body: fd });
     const d = await res.json().catch(() => ({}));
     setBusy(false);
-    if (res.ok) { setDeclared(true); return; }
+    if (res.ok) { setDeclared(true); setDeclaredId(d.paymentId ?? null); return; }
     setErrors(d.errors ?? { form: d.error || "L'envoi a échoué. Réessayez." });
   }
   const copy = async (txt: string, key: string) => { try { await navigator.clipboard.writeText(txt.replace(/\s/g, "")); setCopied(key); setTimeout(() => setCopied(""), 2000); } catch {} };
@@ -98,6 +100,7 @@ export default function PayPanel(p: Props) {
                 <div className="pay-ok" role="status">
                   <b>Paiement en cours de vérification</b>
                   <p>Antoine a reçu votre capture. Dès qu'il confirme la réception, la facture passe en « Payée ». Gardez le SMS de confirmation.</p>
+                  {p.receiptEnabled && declaredId && <ReceiptPrompt token={p.token} paymentId={declaredId} defaultEmail={p.clientEmail} pending autoOpen delay={500} />}
                 </div>
               ) : numbers.length ? (
                 <form onSubmit={declare} className="form" noValidate>

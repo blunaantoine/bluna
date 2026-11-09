@@ -129,3 +129,18 @@
 .proof-drop.has { place-items: stretch; border-style: solid; }
 .proof-drop img { width: 100%; max-height: 320px; object-fit: contain; background: #000; pointer-events: none; }
 .proof-change { position: absolute; right: 8px; bottom: 8px; padding: .35rem .7rem; border-radius: 999px; background: rgba(13,13,14,.82); font: 500 .7rem/1 var(--f-mono), monospace; color: var(--silver-hi); pointer-events: none; }
+
+/* Fenêtre « Recevoir votre reçu » */
+.rp-wrap { position: fixed; inset: 0; z-index: 95; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) var(--gutter-r) max(16px, env(safe-area-inset-bottom, 0px)) var(--gutter); }
+.rp-backdrop { position: absolute; inset: 0; background: rgba(5,5,6,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.rp-card { position: relative; width: min(440px, 100%); display: grid; justify-items: center; gap: 1rem; padding: 2rem 1.6rem 1.6rem; border-radius: 16px; border: 1px solid var(--line); background: var(--graphite); text-align: center; box-shadow: 0 40px 80px -20px rgba(0,0,0,.8); }
+.rp-close { position: absolute; top: 10px; right: 10px; width: 38px; height: 38px; }
+.rp-icon { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; background: var(--panel-2); color: var(--silver-hi); border: 1px solid var(--line); }
+.rp-form { display: grid; gap: .9rem; width: 100%; }
+.rp-form h2 { font-size: 1.8rem; line-height: 1.1; }
+.rp-form p { color: var(--silver-lo); font-size: var(--s-sm); }
+.rp-form p b { color: var(--silver-hi); overflow-wrap: anywhere; }
+.rp-form .field { text-align: left; }
+.rp-form .btn { width: 100%; }
+.rp-skip { justify-self: center; }
+.receipt-link { justify-self: start; }
