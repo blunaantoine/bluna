@@ -12,7 +12,7 @@ export default function PayPanel(p: Props) {
   const [mode, setMode] = useState<"online" | "mobile">(p.online ? "online" : "mobile");
   const [part, setPart] = useState<"tout" | "acompte">("tout");
   const [deposit, setDeposit] = useState(Math.round(p.due / 2 / 100) * 100 || p.due);
-  const [f, setF] = useState({ name: "", phone: "", email: "", operator: p.tmoney ? "tmoney" : "flooz" });
+  const [f, setF] = useState({ operator: p.tmoney ? "tmoney" : "flooz" });
   const [proof, setProof] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
@@ -25,20 +25,18 @@ export default function PayPanel(p: Props) {
   const amount = p.allowDeposit && part === "acompte" ? Math.min(Math.max(100, deposit || 0), p.due) : p.due;
   useEffect(() => { if (open) document.getElementById("pay-sheet")?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [open]);
 
-  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => { setF({ ...f, [k]: e.target.value }); setErrors({}); };
 
   async function payOnline(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setErrors({});
-    const res = await fetch(`/api/factures/${p.token}/payer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ amount, name: f.name, phone: f.phone, email: f.email }) });
+    const res = await fetch(`/api/factures/${p.token}/payer`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ amount }) });
     const d = await res.json().catch(() => ({}));
     if (res.ok && d.url) { window.location.href = d.url; return; }
     setErrors({ form: d.error || "Le paiement n'a pas pu démarrer. Réessayez." }); setBusy(false);
   }
   async function declare(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setErrors({});
-    if (!proof) { setBusy(false); setErrors({ proof: "Ajoutez la capture d'écran de votre paiement." }); return; }
     const fd = new FormData();
-    fd.append("amount", String(amount)); fd.append("operator", f.operator); fd.append("phone", f.phone); fd.append("proof", proof);
+    fd.append("amount", String(amount)); fd.append("operator", f.operator); if (proof) fd.append("proof", proof);
     const res = await fetch(`/api/factures/${p.token}/declarer`, { method: "POST", body: fd });
     const d = await res.json().catch(() => ({}));
     setBusy(false);
@@ -87,11 +85,6 @@ export default function PayPanel(p: Props) {
 
               {mode === "online" ? (
                 <form onSubmit={payOnline} className="form" noValidate>
-                  <label className="field"><span>Nom du payeur</span><input id="pay-name" autoComplete="name" value={f.name} onChange={set("name")} placeholder="Ex. Afi Mensah" /></label>
-                  <div className="field-row">
-                    <label className="field"><span>Numéro Mobile Money</span><input id="pay-phone" type="tel" inputMode="tel" autoComplete="tel" value={f.phone} onChange={set("phone")} placeholder="90 00 00 00" /></label>
-                    <label className="field"><span>E-mail (reçu)</span><input id="pay-email" type="email" autoComplete="email" value={f.email} onChange={set("email")} placeholder="facultatif" /></label>
-                  </div>
                   {errors.form && <p className="err" role="alert">{errors.form}</p>}
                   <button className="btn" disabled={busy}>{busy ? "Ouverture du paiement…" : `Payer ${fmt(amount)}`}</button>
                   <p className="pay-note">Vous allez être redirigé vers la page sécurisée FedaPay pour choisir T-Money, Flooz ou votre carte. La facture se met à jour dès la confirmation.</p>
@@ -99,7 +92,7 @@ export default function PayPanel(p: Props) {
               ) : declared ? (
                 <div className="pay-ok" role="status">
                   <b>Paiement en cours de vérification</b>
-                  <p>Antoine a reçu votre capture. Dès qu'il confirme la réception, la facture passe en « Payée ». Gardez le SMS de confirmation.</p>
+                  <p>Antoine a été prévenu. Dès qu'il confirme la réception, la facture passe en « Payée ». Gardez le SMS de confirmation.</p>
                   {p.receiptEnabled && declaredId && <ReceiptPrompt token={p.token} paymentId={declaredId} defaultEmail={p.clientEmail} pending autoOpen delay={500} />}
                 </div>
               ) : numbers.length ? (
@@ -113,7 +106,7 @@ export default function PayPanel(p: Props) {
                       </ul>
                       <span className="mono">Motif à indiquer : {p.number}</span>
                     </li>
-                    <li>Faites une capture d'écran du SMS ou de l'application qui confirme le transfert, puis ajoutez-la ci-dessous.</li>
+                    <li>Touchez « J'ai payé ». Vous pouvez joindre la capture du SMS de confirmation : c'est facultatif, mais cela accélère la vérification.</li>
                   </ol>
                   {numbers.length > 1 && (
                     <div className="chips">
@@ -131,13 +124,12 @@ export default function PayPanel(p: Props) {
                     ) : (
                       <span className="proof-empty">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" /><circle cx="9" cy="10" r="1.8" stroke="currentColor" strokeWidth="1.6" /><path d="M21 16l-5-5-9 8" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
-                        <b>Ajouter la capture du paiement</b>
+                        <b>Ajouter la capture <span className="opt">(facultatif)</span></b>
                         <small>Photo ou capture d'écran du SMS de confirmation</small>
                       </span>
                     )}
                   </label>
                   {errors.proof && <p className="err">{errors.proof}</p>}
-                  <label className={`field${errors.phone ? " invalid" : ""}`}><span>Numéro qui a envoyé l'argent</span><input id="decl-phone" type="tel" inputMode="tel" value={f.phone} onChange={set("phone")} placeholder="90 00 00 00" />{errors.phone && <span className="err">{errors.phone}</span>}</label>
                   {errors.amount && <p className="err">{errors.amount}</p>}
                   {errors.form && <p className="err" role="alert">{errors.form}</p>}
                   <button className="btn" disabled={busy}>{busy ? "Envoi…" : "J'ai payé"}</button>

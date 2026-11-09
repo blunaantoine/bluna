@@ -93,7 +93,7 @@ export default function BillingAdmin({ projects }: { projects: { slug: string; t
                     <img src={`/api/admin/paiements/${p.id}/preuve`} alt={`Capture du paiement de ${i.client.name}`} />
                   </a>
                 ) : null}
-                <span className="verify-info"><b>{fcfa(p.amount)}</b> par {p.provider} · {i.client.name} · {i.number}<br /><span className="mono">depuis {p.payerPhone}{p.reference ? ` · réf. ${p.reference}` : ""} · {dateFr(p.createdAt)}</span>{p.proof ? <><br /><a className="link-arrow" href={`/api/admin/paiements/${p.id}/preuve`} target="_blank" rel="noopener">Voir la capture ↗</a></> : null}</span>
+                <span className="verify-info"><b>{fcfa(p.amount)}</b> par {p.provider} · {i.client.name} · {i.number}<br /><span className="mono">{p.payerPhone ? `depuis ${p.payerPhone} · ` : ""}{p.reference ? `réf. ${p.reference} · ` : ""}{dateFr(p.createdAt)}{!p.proof ? " · sans capture : vérifiez sur votre relevé" : ""}</span>{p.proof ? <><br /><a className="link-arrow" href={`/api/admin/paiements/${p.id}/preuve`} target="_blank" rel="noopener">Voir la capture ↗</a></> : null}</span>
                 <AiPanel p={p} onRetry={() => act(`/api/admin/paiements/${p.id}/analyser`, {}, "Capture relue.", "POST")} />
                 <span className="pact">
                   <button className="btn btn-sm" onClick={() => act(`/api/admin/paiements/${p.id}`, { action: "valider" }, "Paiement validé, la facture est à jour.")}>J'ai bien reçu</button>

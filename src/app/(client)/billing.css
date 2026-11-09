@@ -144,3 +144,5 @@
 .rp-form .btn { width: 100%; }
 .rp-skip { justify-self: center; }
 .receipt-link { justify-self: start; }
+.proof-empty .opt { font-weight: 400; color: var(--silver-lo); }
+.proof-drop { min-height: 110px; }
