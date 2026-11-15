@@ -76,5 +76,5 @@ Le statut d'un paiement est toujours revérifié auprès de FedaPay : ni un faux
 
 ## Contenu
 
-- Les 18 projets de départ sont dans `src/content/projects.ts`. `npm run db:seed` ne remplace jamais un projet modifié dans l'admin.
+- Les 18 projets de départ sont dans `src/content/projects.ts`. Ils ne sont insérés qu'à la première installation : ensuite, un projet modifié ou supprimé dans l'admin le reste, même après une mise à jour.
 - Les images d'origine viennent du dossier Drive « Portfolio - Antoine ANANI » et de vraies captures des applications.
