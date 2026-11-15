@@ -64,8 +64,8 @@ export default async function Home() {
         <Reveal className="suivi-band-inner">
           <div>
             <p className="eyebrow">Grille tarifaire</p>
-            <h2 className="display">Logo, visuels, affiches : <em className="silver">des prix clairs</em>.</h2>
-            <p>Visuel réseaux sociaux dès 4 000 FCFA, logo dès 50 000 FCFA, accompagnement mensuel sur abonnement.</p>
+            <h2 className="display">Graphisme, vidéo, web : <em className="silver">des prix clairs</em>.</h2>
+            <p>Montage vidéo dès 2 500 FCFA, logo dès 50 000 FCFA, site web dès 50 000 FCFA, application dès 250 000 FCFA.</p>
           </div>
           <Link href="/tarifs" className="btn">Voir les tarifs</Link>
         </Reveal>

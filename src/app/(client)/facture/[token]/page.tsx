@@ -7,7 +7,7 @@ import { fcfa, linesTotal, STATUS_LABEL, toPublic } from "@/lib/invoices";
 import { profile } from "@/content/site";
 import { getPaymentMethods, KINDS, toPublicMethod } from "@/lib/payment-methods";
 import { offersInLines, shortConditions } from "@/content/offers";
-import { hasTariffLine, monthlyDesign, tariffConditions } from "@/content/tariffs";
+import { sectionsInLines } from "@/content/tariffs";
 import PayPanel from "@/components/billing/PayPanel";
 import PrintButton from "@/components/billing/PrintButton";
 import ReceiptPrompt from "@/components/billing/ReceiptPrompt";
@@ -125,13 +125,15 @@ export default async function InvoicePage({ params, searchParams }: Props) {
             </section>
           ))}
 
-          {hasTariffLine(inv.items.map((l) => l.label)) && (
-            <section className="paper-terms" aria-label="Conditions des prestations graphiques">
-              <span className="lbl">Conditions</span>
-              <ul>{tariffConditions.slice(1).map((c) => <li key={c}>{c}</li>)}</ul>
-              {inv.items.some((l) => l.label.startsWith(monthlyDesign.label)) && <p>{monthlyDesign.label} : {monthlyDesign.includes.join(", ").toLowerCase()}. {monthlyDesign.note}</p>}
+          {sectionsInLines(inv.items.map((l) => l.label)).map((s) => (
+            <section key={s.id} className="paper-terms" aria-label={`Conditions ${s.title}`}>
+              <span className="lbl">{s.conditionsTitle} · {s.title}</span>
+              <ul>{s.conditions.map((c) => <li key={c}>{c}</li>)}</ul>
+              {s.groups.filter((g) => (g.notes || g.bullets) && g.items.some((t) => inv.items.some((l) => l.label.startsWith(`${g.line}${t.label}`)))).map((g) => (
+                <p key={g.id}>{g.title} : {[g.bullets && (g.id !== "tournage" || inv.items.some((l) => l.label.endsWith("avec votre matériel"))) && `${g.bullets.items.join(" ; ")}.`, ...(g.notes ?? [])].filter(Boolean).join(" ")}</p>
+              ))}
             </section>
-          )}
+          ))}
 
           {inv.status !== "payee" && inv.status !== "annulee" && methods.length > 0 && (
             <section className="paper-pay" aria-label="Moyens de paiement">

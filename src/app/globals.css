@@ -401,16 +401,38 @@ input[type="range"] { flex: 1 1 200px; min-width: 0; accent-color: var(--silver-
 .suivi-band-inner p:not(.eyebrow) { color: var(--silver-lo); }
 
 /* Grille tarifaire (page /tarifs) */
-.tariff-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 1.2rem; padding-block: 1.5rem clamp(3rem, 6vw, 5rem); }
-.tariff-card { display: grid; gap: 1rem; align-content: start; padding: clamp(1.4rem, 3vw, 2rem); border-radius: 16px; border: 1px solid var(--line); background: var(--graphite); }
-.tariff-card h2 { font-size: 1.7rem; }
-.tariff-card ul { list-style: none; display: grid; }
-.tariff-card li { display: flex; justify-content: space-between; align-items: baseline; gap: .4rem 1.2rem; flex-wrap: wrap; padding: .85rem 0; border-top: 1px solid var(--line); font-size: var(--s-sm); color: var(--silver); }
-.tariff-card li span { display: grid; gap: .15rem; }
-.tariff-card li small { font-size: .78rem; color: var(--silver-lo); }
-.tariff-card li b { font-family: var(--f-mono), monospace; font-weight: 500; font-size: .85rem; color: var(--silver-hi); white-space: nowrap; }
-.tariff-price { font-family: var(--f-display, inherit); font-size: clamp(1.4rem, 3vw, 2rem); color: var(--silver-hi); font-weight: 400; }
-.tariff-price small { font-size: .9rem; color: var(--silver-lo); }
+.tariff-tabs { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .4rem; }
+.tariff-tabs a { padding: .6rem 1.1rem; border-radius: 999px; border: 1px solid var(--line); font-size: var(--s-sm); color: var(--silver-hi); transition: background .2s; }
+.tariff-tabs a:hover { background: var(--panel); }
+.tariff-section { scroll-margin-top: 80px; }
+.tariff-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 1.2rem; }
+.tariff-card { display: grid; gap: .9rem; align-content: start; padding: clamp(1.3rem, 3vw, 2rem); border-radius: 16px; border: 1px solid var(--line); background: var(--graphite); min-width: 0; }
+.section-alt .tariff-card { background: var(--ink, #0b0b0c); }
+.tariff-card.wide { grid-column: 1 / -1; }
+.tariff-card h3 { font-size: 1.6rem; }
+.tariff-intro { font-size: var(--s-sm); color: var(--silver); max-width: 48rem; }
+.tariff-card > ul { list-style: none; display: grid; }
+.tariff-card > ul > li { display: flex; justify-content: space-between; align-items: baseline; gap: .4rem 1.4rem; flex-wrap: wrap; padding: .85rem 0; border-top: 1px solid var(--line); font-size: var(--s-sm); color: var(--silver-hi); }
+.t-name { display: grid; gap: .2rem; min-width: 0; flex: 1 1 260px; }
+.t-name small { font-size: .8rem; color: var(--silver-lo); }
+.t-name .t-delay { font-family: var(--f-mono), monospace; font-size: .72rem; letter-spacing: .04em; }
+.tariff-card li > b, .t-prices b { font-family: var(--f-mono), monospace; font-weight: 500; font-size: .85rem; color: var(--silver-hi); text-align: right; }
+.t-prices { display: grid; grid-template-columns: repeat(2, minmax(150px, auto)); gap: 1.4rem; }
+.t-prices i { display: none; font-style: normal; font-size: .7rem; color: var(--silver-lo); }
+.tariff-cols { display: grid; grid-template-columns: 1fr repeat(2, minmax(150px, auto)); gap: 1.4rem; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--silver-lo); text-align: right; }
+@media (max-width: 640px) {
+  .tariff-cols { display: none; }
+  .t-prices { grid-template-columns: 1fr 1fr; width: 100%; gap: .8rem; }
+  .t-prices b { display: grid; gap: .15rem; text-align: left; }
+  .t-prices i { display: block; }
+}
+.tariff-note { font-size: var(--s-xs); color: var(--silver-lo); font-family: var(--f-mono), monospace; }
+.tariff-sub { display: grid; gap: .5rem; font-size: var(--s-sm); color: var(--silver); }
+.tariff-sub b { color: var(--silver-hi); font-weight: 500; }
+.tariff-bullets { list-style: none; display: grid; gap: .5rem; font-size: var(--s-sm); color: var(--silver); }
+.tariff-bullets li { padding-left: 1rem; position: relative; }
+.tariff-bullets li::before { content: ""; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; border-radius: 50%; background: var(--silver-lo); }
+.tariff-cond { border-style: dashed; }
 
 /* Page À propos */
 .about-hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: center; padding-block: clamp(2rem, 5vw, 4rem); }
