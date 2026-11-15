@@ -7,6 +7,7 @@ import { fcfa, linesTotal, STATUS_LABEL, toPublic } from "@/lib/invoices";
 import { profile } from "@/content/site";
 import { getPaymentMethods, KINDS, toPublicMethod } from "@/lib/payment-methods";
 import { offersInLines, shortConditions } from "@/content/offers";
+import { hasTariffLine, monthlyDesign, tariffConditions } from "@/content/tariffs";
 import PayPanel from "@/components/billing/PayPanel";
 import PrintButton from "@/components/billing/PrintButton";
 import ReceiptPrompt from "@/components/billing/ReceiptPrompt";
@@ -123,6 +124,14 @@ export default async function InvoicePage({ params, searchParams }: Props) {
               <ul className="po-cond">{shortConditions.map((c) => <li key={c}>{c}</li>)}</ul>
             </section>
           ))}
+
+          {hasTariffLine(inv.items.map((l) => l.label)) && (
+            <section className="paper-terms" aria-label="Conditions des prestations graphiques">
+              <span className="lbl">Conditions</span>
+              <ul>{tariffConditions.slice(1).map((c) => <li key={c}>{c}</li>)}</ul>
+              {inv.items.some((l) => l.label.startsWith(monthlyDesign.label)) && <p>{monthlyDesign.label} : {monthlyDesign.includes.join(", ").toLowerCase()}. {monthlyDesign.note}</p>}
+            </section>
+          )}
 
           {inv.status !== "payee" && inv.status !== "annulee" && methods.length > 0 && (
             <section className="paper-pay" aria-label="Moyens de paiement">

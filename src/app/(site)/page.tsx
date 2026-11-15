@@ -65,6 +65,17 @@ export default async function Home() {
       <section className="wrap suivi-band">
         <Reveal className="suivi-band-inner">
           <div>
+            <p className="eyebrow">Grille tarifaire</p>
+            <h2 className="display">Logo, visuels, affiches : <em className="silver">des prix clairs</em>.</h2>
+            <p>Visuel réseaux sociaux dès 4 000 FCFA, logo dès 50 000 FCFA, accompagnement mensuel sur abonnement.</p>
+          </div>
+          <Link href="/tarifs" className="btn">Voir les tarifs</Link>
+        </Reveal>
+      </section>
+
+      <section className="wrap suivi-band">
+        <Reveal className="suivi-band-inner">
+          <div>
             <p className="eyebrow">Après la mise en ligne</p>
             <h2 className="display">Votre application suivie chaque mois, <em className="silver">dès 10 000 FCFA</em>.</h2>
             <p>Sécurité, bugs corrigés, assistance WhatsApp : trois formules sans engagement.</p>

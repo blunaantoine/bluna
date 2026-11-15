@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminNav from "./AdminNav";
 import { offers, yearlyPrice } from "@/content/offers";
+import { monthlyDesign, priceRange, tariffGroups } from "@/content/tariffs";
 
 type Line = { label: string; qty: number; unitPrice: number };
 type Client = { id: string; name: string; company: string; phone: string; email: string; token: string; invoiceCount?: number; due?: number };
@@ -365,6 +366,22 @@ function InvoiceEditor({ inv, clients, projects, onClose, onDone, onClientCreate
             }}>
               <option value="">+ Formule de suivi…</option>
               {offers.map((o) => <optgroup key={o.id} label={o.title}><option value={`${o.id}:mois`}>{o.title} · mensuel · {o.monthly.toLocaleString("fr-FR")} F</option><option value={`${o.id}:an`}>{o.title} · annuel · {yearlyPrice(o.monthly).toLocaleString("fr-FR")} F</option></optgroup>)}
+            </select>
+            <select aria-label="Ajouter une prestation graphique" className="admin-select" value="" onChange={(e) => {
+              const id = e.target.value;
+              const month = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+              const t = tariffGroups.flatMap((g) => g.items).find((x) => x.id === id);
+              // Prix de départ = bas de la fourchette : à ajuster selon la complexité.
+              const line = t ? { label: t.unit ? `${t.label} (par ${t.unit})` : t.label, qty: 1, unitPrice: t.min }
+                : id === monthlyDesign.id ? { label: `${monthlyDesign.label} — ${month}`, qty: 1, unitPrice: monthlyDesign.min } : null;
+              if (!line) return;
+              setItems((x) => [...x.filter((l) => l.label || l.unitPrice), line]);
+              if (!title) setTitle(t ? t.label : `${monthlyDesign.label} — ${month}`);
+              if (t) setAllowDeposit(true); // 50 % d'acompte requis avant démarrage
+            }}>
+              <option value="">+ Prestation graphique…</option>
+              {tariffGroups.map((g) => <optgroup key={g.id} label={g.title}>{g.items.map((t) => <option key={t.id} value={t.id}>{t.label} · {priceRange(t)}</option>)}</optgroup>)}
+              <optgroup label="Engagement mensuel"><option value={monthlyDesign.id}>{monthlyDesign.label} · {priceRange(monthlyDesign)} / mois</option></optgroup>
             </select>
           </div>
         </div>
