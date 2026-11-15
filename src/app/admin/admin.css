@@ -218,3 +218,19 @@ fieldset[disabled] { opacity: .6; }
 .pm-kind.k-banque { border-color: rgba(159,211,255,.5); color: #9fd3ff; }
 .pm-kind.k-carte { border-color: rgba(127,224,166,.5); color: var(--live); }
 .pm-details { font-size: var(--s-xs); color: var(--silver-lo); }
+
+/* Profil (photos et À propos) */
+.pf { display: grid; gap: 1.4rem; }
+.pf fieldset { display: grid; gap: 1.1rem; padding: clamp(1rem, 3vw, 1.6rem); border: 1px solid var(--line); border-radius: 14px; background: var(--graphite); }
+.pf-top { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.pf-slot { display: grid; grid-template-columns: 160px 1fr; gap: 1.2rem; align-items: center; }
+@media (max-width: 560px) { .pf-slot { grid-template-columns: 110px 1fr; } }
+.pf-slot > div { display: grid; gap: .35rem; }
+.pf-img { position: relative; aspect-ratio: 4/5; border-radius: 10px; overflow: hidden; background: var(--panel); border: 1px solid var(--line); }
+.pf-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-top: .4rem; }
+.pf-file { position: relative; cursor: pointer; }
+.pf-file input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.pf-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; gap: .6rem; align-items: start; }
+@media (max-width: 640px) { .pf-pair { grid-template-columns: 1fr auto; } .pf-pair textarea { grid-column: 1; } }
+.pf-pair input, .pf-pair textarea { width: 100%; padding: .6rem .8rem; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--silver-hi); font: inherit; font-size: var(--s-sm); }
+.pf-bottom { display: flex; justify-content: flex-end; }

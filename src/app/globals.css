@@ -144,13 +144,6 @@ button { background: none; border: 0; cursor: pointer; }
   .collage { order: -1; aspect-ratio: 1 / .9; max-width: 560px; width: 100%; margin-inline: auto; }
 }
 
-/* Bandeau défilant d'œuvres */
-.reel { border-block: 1px solid var(--line); background: var(--graphite); overflow: hidden; padding-block: 1.2rem; }
-.reel-track { display: flex; gap: 1rem; width: max-content; animation: reel 60s linear infinite; }
-.reel:hover .reel-track { animation-play-state: paused; }
-.reel-item { position: relative; height: clamp(120px, 16vw, 180px); border-radius: 6px; overflow: hidden; flex: none; background: var(--panel); }
-.reel-item img { height: 100%; width: auto; object-fit: cover; }
-@keyframes reel { to { transform: translateX(-50%); } }
 
 /* Index des projets (survol avec aperçu) */
 .index { border-top: 1px solid var(--line); }
@@ -418,3 +411,33 @@ input[type="range"] { flex: 1 1 200px; min-width: 0; accent-color: var(--silver-
 .tariff-card li b { font-family: var(--f-mono), monospace; font-weight: 500; font-size: .85rem; color: var(--silver-hi); white-space: nowrap; }
 .tariff-price { font-family: var(--f-display, inherit); font-size: clamp(1.4rem, 3vw, 2rem); color: var(--silver-hi); font-weight: 400; }
 .tariff-price small { font-size: .9rem; color: var(--silver-lo); }
+
+/* Page À propos */
+.about-hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: center; padding-block: clamp(2rem, 5vw, 4rem); }
+@media (max-width: 900px) { .about-hero { grid-template-columns: 1fr; } .about-hero-photo { order: -1; } }
+.about-hero-copy { display: grid; gap: 1.2rem; min-width: 0; }
+.about-hero-copy h1 { font-size: clamp(2.4rem, 5.6vw, 4.6rem); line-height: 1.02; }
+.about-hero-copy p { max-width: 40rem; color: var(--silver); }
+.about-hero-copy strong { color: var(--silver-hi); }
+.about-hero-photo { position: relative; aspect-ratio: 4/5; border-radius: var(--radius); overflow: hidden; background: var(--graphite); }
+.about-hero-photo img { object-fit: cover; object-position: 50% 25%; }
+.about-facts { list-style: none; display: flex; gap: 1.2rem 2.6rem; flex-wrap: wrap; padding-top: 1.2rem; margin-top: .4rem; border-top: 1px solid var(--line); }
+.about-facts li { display: grid; gap: .2rem; }
+.about-facts strong { font-size: clamp(1.8rem, 3.4vw, 2.6rem); font-weight: 400; color: var(--silver-hi); line-height: 1; }
+.about-facts span { font-size: var(--s-xs); color: var(--silver-lo); }
+.about-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(46%, 240px), 1fr)); gap: .8rem; padding-bottom: clamp(3rem, 6vw, 5rem); }
+.about-shot { position: relative; aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; background: var(--graphite); }
+.about-shot img { object-fit: cover; transition: transform .8s cubic-bezier(.22,1,.36,1); }
+.about-shot:hover img { transform: scale(1.04); }
+.about-values { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 1.2rem; }
+.about-value { display: grid; gap: .6rem; align-content: start; padding: 1.4rem; border-radius: 14px; border: 1px solid var(--line); background: var(--graphite); }
+.about-value h3 { font-size: 1.15rem; color: var(--silver-hi); }
+.about-value p { font-size: var(--s-sm); color: var(--silver); }
+.about-journey ol { list-style: none; display: grid; gap: 0; border-left: 1px solid var(--line); margin-left: .4rem; }
+.about-journey li { position: relative; display: grid; grid-template-columns: minmax(110px, 180px) 1fr; gap: .4rem 2rem; padding: 1.1rem 0 1.1rem 1.6rem; }
+.about-journey li::before { content: ""; position: absolute; left: -5px; top: 1.45rem; width: 9px; height: 9px; border-radius: 50%; background: var(--silver-hi); }
+@media (max-width: 560px) { .about-journey li { grid-template-columns: 1fr; } }
+.about-journey b { font-family: var(--f-mono), monospace; font-weight: 500; font-size: var(--s-sm); letter-spacing: .06em; color: var(--silver-hi); text-transform: uppercase; }
+.about-journey p { color: var(--silver); max-width: 40rem; }
+.about-skills { margin-top: 2rem; }
+.about-more { margin-top: .4rem; }

@@ -1,24 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import Hero from "@/components/Hero";
-import Reel from "@/components/Reel";
 import Reveal from "@/components/Reveal";
 import ProjectIndex from "@/components/ProjectIndex";
 import { getProjects } from "@/lib/projects";
+import { getProfile } from "@/lib/profile";
 import { fitFor } from "@/lib/view";
 import { profile, services } from "@/content/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const projects = await getProjects();
+  const [projects, me] = await Promise.all([getProjects(), getProfile()]);
   const featured = projects.filter((p) => p.featured);
   // Collage de l'accueil : les projets « À la une », dans l'ordre choisi dans l'admin.
   const tiles = (featured.length ? featured : projects).slice(0, 5).map((p) => {
     const img = p.images[0];
     return { src: img.src, label: p.title, slug: p.slug, bg: p.coverBg, fit: fitFor(p, img.src) as "cover" | "contain" };
   });
-  const reel = projects.flatMap((p) => p.images.slice(0, p.category === "photo" ? 4 : 1).map((im) => ({ ...im, slug: p.slug, bg: p.coverBg, contain: fitFor(p, im.src) === "contain" })));
   const stats = [
     { n: projects.length, label: "projets à découvrir" },
     { n: projects.filter((p) => p.category === "web").length, label: "sites & applications" },
@@ -27,8 +26,7 @@ export default async function Home() {
 
   return (
     <>
-      <Hero tiles={tiles} stats={stats} />
-      <Reel items={reel} />
+      <Hero tiles={tiles} stats={stats} portrait={me.portrait} />
 
       <section className="section" id="travaux">
         <div className="wrap">
@@ -106,14 +104,17 @@ export default async function Home() {
       <section className="section section-alt" id="apropos">
         <div className="wrap about">
           <Reveal className="about-photo">
-            <Image src="/img/antoine-studio.webp" alt="Antoine ANANI en costume, assis, souriant" fill sizes="(max-width: 860px) 100vw, 50vw" />
+            <Image src={me.photo} alt={`Portrait de ${profile.name}`} fill sizes="(max-width: 860px) 100vw, 50vw" />
           </Reveal>
           <Reveal className="about-copy" delay={0.1}>
             <p className="eyebrow">À propos</p>
-            <h2 className="display section-title">Graphiste de formation, développeur par passion.</h2>
-            <p>Je suis {profile.name}, fondateur d'<Link href="/admin" className="secret-link" tabIndex={-1} data-secret aria-hidden="true"><strong>{profile.studio}</strong></Link> à Lomé. J'ai commencé par les logos et les affiches, puis j'ai voulu que mes clients puissent aussi vendre, réserver et s'organiser en ligne.</p>
-            <p>Aujourd'hui, je dessine l'identité d'une marque et je développe le site ou l'application qui va avec : une boutique de luxe, un cabinet de santé, un sommet national, une application de services à domicile.</p>
-            <ul className="chips-static">{["Illustrator", "Photoshop", "Canva", "Figma", "Next.js", "React", "Android", "Photographie"].map((s) => <li key={s}>{s}</li>)}</ul>
+            <h2 className="display section-title">{me.headline}</h2>
+            {me.intro.slice(0, 2).map((t, i) => {
+              const k = t.indexOf(profile.studio);
+              return <p key={i}>{i === 0 && k >= 0 ? <>{t.slice(0, k)}<Link href="/admin" className="secret-link" tabIndex={-1} data-secret aria-hidden="true"><strong>{profile.studio}</strong></Link>{t.slice(k + profile.studio.length)}</> : t}</p>;
+            })}
+            <ul className="chips-static">{me.skills.map((s) => <li key={s}>{s}</li>)}</ul>
+            <Link href="/a-propos" className="link-arrow about-more">En savoir plus sur moi →</Link>
           </Reveal>
         </div>
       </section>

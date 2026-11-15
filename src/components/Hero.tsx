@@ -18,7 +18,7 @@ const SLOTS = [
   { l: "40%", t: "70%", w: "34%", h: "28%", d: 18 },
 ];
 
-export default function Hero({ tiles, stats }: { tiles: Tile[]; stats: { n: number; label: string }[] }) {
+export default function Hero({ tiles, stats, portrait = "/img/antoine-portrait.webp" }: { tiles: Tile[]; stats: { n: number; label: string }[]; portrait?: string }) {
   const reduce = useReducedMotion();
   const [w, setW] = useState(0);
   const mx = useMotionValue(0), my = useMotionValue(0);
@@ -67,7 +67,7 @@ export default function Hero({ tiles, stats }: { tiles: Tile[]; stats: { n: numb
           {SLOTS.map((s, i) => {
             const tile = s.portrait ? null : tiles[i - 1];
             if (!s.portrait && !tile) return null;
-            return <Slot key={i} s={s} i={i} sx={sx} sy={sy} tile={tile} reduce={!!reduce} />;
+            return <Slot key={i} s={s} i={i} sx={sx} sy={sy} tile={tile} reduce={!!reduce} portrait={portrait} />;
           })}
         </div>
       </div>
@@ -75,14 +75,14 @@ export default function Hero({ tiles, stats }: { tiles: Tile[]; stats: { n: numb
   );
 }
 
-function Slot({ s, i, sx, sy, tile, reduce }: { s: (typeof SLOTS)[number]; i: number; sx: ReturnType<typeof useSpring>; sy: ReturnType<typeof useSpring>; tile: Tile | null; reduce: boolean }) {
+function Slot({ s, i, sx, sy, tile, reduce, portrait }: { s: (typeof SLOTS)[number]; i: number; sx: ReturnType<typeof useSpring>; sy: ReturnType<typeof useSpring>; tile: Tile | null; reduce: boolean; portrait: string }) {
   const x = useTransform(sx, (v) => v * s.d), y = useTransform(sy, (v) => v * s.d);
   const style = { left: s.l, top: s.t, width: s.w, height: s.h, x, y, zIndex: s.portrait ? 3 : 2, background: tile?.bg };
   const intro = reduce ? false : { scale: 0.85, rotate: i % 2 ? 4 : -4 };
   if (!tile) {
     return (
       <motion.figure className="collage-item collage-portrait" style={style} initial={intro} animate={{ scale: 1, rotate: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}>
-        <Image src="/img/antoine-portrait.webp" alt="Portrait d'Antoine ANANI" fill priority sizes="(max-width: 900px) 45vw, 24vw" style={{ objectPosition: "50% 18%" }} />
+        <Image src={portrait} alt="Portrait d'Antoine ANANI" fill priority sizes="(max-width: 900px) 45vw, 24vw" style={{ objectPosition: "50% 18%" }} />
       </motion.figure>
     );
   }

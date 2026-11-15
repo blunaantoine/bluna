@@ -127,3 +127,10 @@ model PaymentMethod {
   order     Int      @default(0)
   createdAt DateTime @default(now())
 }
+
+/// Réglages modifiables depuis l'admin (ex. profil « À propos »), stockés en JSON.
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

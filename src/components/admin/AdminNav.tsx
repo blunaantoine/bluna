@@ -15,6 +15,7 @@ export default function AdminNav({ unread }: { unread?: number }) {
         <Link href="/admin/moyens" aria-current={path.startsWith("/admin/moyens") ? "page" : undefined}>Paiement</Link>
         <Link href="/admin/rapports" aria-current={path.startsWith("/admin/rapports") ? "page" : undefined}>Rapports</Link>
         <Link href="/admin/projets" aria-current={path.startsWith("/admin/projets") ? "page" : undefined}>Projets</Link>
+        <Link href="/admin/profil" aria-current={path.startsWith("/admin/profil") ? "page" : undefined}>Profil</Link>
         <Link href="/" target="_blank">Voir le site ↗</Link>
       </nav>
       <button className="btn btn-ghost btn-sm" onClick={logout}>Déconnexion</button>
