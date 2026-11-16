@@ -111,7 +111,7 @@ export default async function Home() {
             <h2 className="display section-title">{me.headline}</h2>
             {me.intro.slice(0, 2).map((t, i) => {
               const k = t.indexOf(profile.studio);
-              return <p key={i}>{i === 0 && k >= 0 ? <>{t.slice(0, k)}<Link href="/admin" className="secret-link" tabIndex={-1} data-secret aria-hidden="true"><strong>{profile.studio}</strong></Link>{t.slice(k + profile.studio.length)}</> : t}</p>;
+              return <p key={i}>{i === 0 && k >= 0 ? <>{t.slice(0, k)}<Link href="/admin" prefetch={false} className="secret-link" tabIndex={-1} data-secret aria-hidden="true"><strong>{profile.studio}</strong></Link>{t.slice(k + profile.studio.length)}</> : t}</p>;
             })}
             <ul className="chips-static">{me.skills.map((s) => <li key={s}>{s}</li>)}</ul>
             <Link href="/a-propos" className="link-arrow about-more">En savoir plus sur moi →</Link>

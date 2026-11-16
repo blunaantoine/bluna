@@ -1,9 +1,8 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
 function Login() {
-  const router = useRouter();
   const next = useSearchParams().get("suite") || "/admin";
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -11,9 +10,21 @@ function Login() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError("");
-    const res = await fetch("/api/admin/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password }) });
-    if (res.ok) { router.replace(next.startsWith("/admin") ? next : "/admin"); router.refresh(); return; }
-    const d = await res.json().catch(() => ({})); setError(d.error || "Connexion impossible."); setBusy(false);
+    // Délai maximum : on ne reste jamais bloqué sur « Connexion… ».
+    const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 15000);
+    try {
+      const res = await fetch("/api/admin/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password }), cache: "no-store", signal: ctrl.signal });
+      if (res.ok) {
+        // Chargement complet de la page (et non navigation interne) : le navigateur pouvait avoir gardé
+        // en mémoire « /admin → connexion » d'avant la connexion, et restait bloqué.
+        window.location.replace(next.startsWith("/admin") && !next.startsWith("/admin/connexion") ? next : "/admin");
+        return;
+      }
+      const d = await res.json().catch(() => ({})); setError(d.error || "Connexion impossible.");
+    } catch {
+      setError("Le serveur ne répond pas. Vérifiez votre connexion internet et réessayez.");
+    } finally { clearTimeout(timer); }
+    setBusy(false);
   }
 
   return (

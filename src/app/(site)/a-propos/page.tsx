@@ -94,5 +94,5 @@ export default async function AboutPage() {
 function withSecret(t: string) {
   const i = t.indexOf(profile.studio);
   if (i < 0) return t;
-  return <>{t.slice(0, i)}<Link href="/admin" className="secret-link" tabIndex={-1} data-secret aria-hidden="true"><strong>{profile.studio}</strong></Link>{t.slice(i + profile.studio.length)}</>;
+  return <>{t.slice(0, i)}<Link href="/admin" prefetch={false} className="secret-link" tabIndex={-1} data-secret aria-hidden="true"><strong>{profile.studio}</strong></Link>{t.slice(i + profile.studio.length)}</>;
 }
