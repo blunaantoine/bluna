@@ -34,7 +34,7 @@ export default function Reports() {
         <div className="admin-head">
           <div>
             <h1 className="display">Rapport · {label}</h1>
-            <p className="mono">Facturé = factures émises sur la période. Encaissé = argent reçu sur la période (date lue sur la capture quand elle existe).</p>
+            <p className="mono">Facturé = factures émises sur la période. Encaissé = argent reçu (date lue sur la capture quand elle existe). Net = encaissé moins les dépenses.</p>
           </div>
           <div className="report-controls no-print">
             <select className="admin-select" aria-label="Mois" value={month ?? 0} onChange={(e) => setMonth(+e.target.value || null)}>
@@ -44,6 +44,7 @@ export default function Reports() {
             <select className="admin-select" aria-label="Année" value={year} onChange={(e) => setYear(+e.target.value)}>
               {years.map((y) => <option key={y} value={y}>{y}</option>)}
             </select>
+            <a className="btn btn-ghost btn-sm" href="/admin/depenses">+ Dépense</a>
             <a className="btn btn-ghost btn-sm" href={`/api/admin/rapports?${qs}&format=csv`}>Exporter (Excel)</a>
             <button className="btn btn-sm" onClick={() => window.print()}>Imprimer / PDF</button>
           </div>
@@ -51,9 +52,11 @@ export default function Reports() {
 
         {!r ? <p className="mono">Chargement…</p> : (
           <div className={`report-body${loading ? " is-loading" : ""}`}>
-            <div className="kpi-grid">
+            <div className="kpi-grid kpi-grid-6">
               <Kpi label="Facturé" value={fcfa(r.kpis.invoiced)} sub={`${r.kpis.invoiceCount} facture(s) · ${r.kpis.clientCount} client(s)`} />
               <Kpi label="Encaissé" value={fcfa(r.kpis.collected)} sub={`${r.kpis.paymentCount} paiement(s) reçu(s)`} />
+              <Kpi label="Dépenses" value={`− ${fcfa(r.kpis.spent)}`} sub={`${r.kpis.expenseCount} dépense(s) enregistrée(s)`} />
+              <Kpi label="Net" value={fcfa(r.kpis.net)} sub="encaissé − dépenses" tone={r.kpis.net < 0 ? "neg" : "pos"} />
               <Kpi label="Reste à encaisser" value={fcfa(r.kpis.outstanding)} sub="sur les factures de la période" />
               <Kpi label="Taux de recouvrement" value={r.kpis.recoveryRate == null ? "—" : `${r.kpis.recoveryRate} %`} sub={r.kpis.invoiceCount ? `panier moyen ${fcfa(r.kpis.averageInvoice)}` : "aucune facture émise"} />
             </div>
@@ -65,6 +68,24 @@ export default function Reports() {
               <Table title="Meilleurs clients" empty="Aucun encaissement sur la période." rows={r.topClients.map((c) => [`${c.name} · ${c.count} paiement(s)`, fcfa(c.amount)])} />
               <Table title="Prestations facturées" empty="Aucune facture émise sur la période." rows={r.topServices.map((s) => [s.label, fcfa(s.amount)])} />
             </div>
+
+            <section className="report-section">
+              <div className="chart-head"><h2>Dépenses ({r.expenses.length})</h2><a className="link-arrow no-print" href="/admin/depenses">Gérer les dépenses →</a></div>
+              {r.expenses.length ? (
+                <div className="report-cols report-cols-2">
+                  <table className="rtable compact">
+                    <tbody>{r.byCategory.map((c) => <tr key={c.label}><td>{c.label}</td><td className="num">{fcfa(c.amount)}</td></tr>)}</tbody>
+                    <tfoot><tr><td>Total des dépenses</td><td className="num">{fcfa(r.kpis.spent)}</td></tr><tr><td>Net (encaissé − dépenses)</td><td className="num">{fcfa(r.kpis.net)}</td></tr></tfoot>
+                  </table>
+                  <div className="table-scroll">
+                    <table className="rtable">
+                      <thead><tr><th>Date</th><th>Objet</th><th>Catégorie</th><th className="num">Montant</th></tr></thead>
+                      <tbody>{r.expenses.map((e, k) => <tr key={k}><td>{dateFr(e.date)}</td><td>{e.label}{e.method ? <small className="muted"> · {e.method}</small> : null}</td><td>{e.category}</td><td className="num">{fcfa(e.amount)}</td></tr>)}</tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : <p className="empty-note">Aucune dépense enregistrée sur la période. Ajoutez-les dans l&apos;onglet Dépenses pour obtenir votre net.</p>}
+            </section>
 
             <section className="report-section">
               <h2>Paiements reçus ({r.payments.length})</h2>
@@ -98,8 +119,8 @@ export default function Reports() {
   );
 }
 
-function Kpi({ label, value, sub }: { label: string; value: string; sub: string }) {
-  return <div className="kpi"><span className="kpi-label">{label}</span><strong className="kpi-value">{value}</strong><span className="kpi-sub">{sub}</span></div>;
+function Kpi({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: "pos" | "neg" }) {
+  return <div className={`kpi${tone ? ` kpi-${tone}` : ""}`}><span className="kpi-label">{label}</span><strong className="kpi-value">{value}</strong><span className="kpi-sub">{sub}</span></div>;
 }
 
 function Table({ title, rows, empty, total }: { title: string; rows: [string, string][]; empty: string; total?: string }) {
@@ -116,30 +137,31 @@ function Table({ title, rows, empty, total }: { title: string; rows: [string, st
   );
 }
 
-/** Barres groupées par mois : facturé (bleu) et encaissé (orange). Couleurs validées sur fond sombre, daltonisme compris. */
-function MonthlyChart({ data, year }: { data: { label: string; invoiced: number; collected: number }[]; year: number }) {
+/** Barres groupées par mois : facturé (bleu), encaissé (orange) et dépenses (gris clair). Couleurs validées sur fond sombre, daltonisme compris. */
+function MonthlyChart({ data, year }: { data: { label: string; invoiced: number; collected: number; spent: number }[]; year: number }) {
   const [hover, setHover] = useState<number | null>(null);
   const W = 960, H = 300, L = 56, R = 12, T = 16, B = 32;
-  const max = Math.max(1, ...data.flatMap((d) => [d.invoiced, d.collected]));
+  const max = Math.max(1, ...data.flatMap((d) => [d.invoiced, d.collected, d.spent]));
   const step = niceStep(max / 4);
   const top = Math.ceil(max / step) * step;
   const y = (v: number) => T + (H - T - B) * (1 - v / top);
-  const band = (W - L - R) / 12, bw = Math.min(22, (band - 14) / 2);
+  const band = (W - L - R) / 12, bw = Math.min(18, (band - 14) / 3);
   const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, k) => k * step);
   const bar = (x: number, v: number) => {
     const h = Math.max(0, y(0) - y(v)); if (h < 0.5) return "";
     const r = Math.min(4, h, bw / 2), yt = y(v), yb = y(0);
     return `M${x},${yb} V${yt + r} Q${x},${yt} ${x + r},${yt} H${x + bw - r} Q${x + bw},${yt} ${x + bw},${yt + r} V${yb} Z`;
   };
-  const total = data.reduce((a, d) => ({ i: a.i + d.invoiced, c: a.c + d.collected }), { i: 0, c: 0 });
+  const total = data.reduce((a, d) => ({ i: a.i + d.invoiced, c: a.c + d.collected, s: a.s + d.spent }), { i: 0, c: 0, s: 0 });
 
   return (
     <section className="report-section chart-card">
       <div className="chart-head">
-        <h2>Facturé et encaissé par mois · {year}</h2>
+        <h2>Facturé, encaissé et dépenses par mois · {year}</h2>
         <div className="legend" aria-hidden="true">
           <span><i style={{ background: "var(--s-invoiced)" }} />Facturé · {fcfa(total.i)}</span>
           <span><i style={{ background: "var(--s-collected)" }} />Encaissé · {fcfa(total.c)}</span>
+          <span><i style={{ background: "var(--s-spent)" }} />Dépenses · {fcfa(total.s)}</span>
         </div>
       </div>
       <div className="chart-wrap" onMouseLeave={() => setHover(null)}>
@@ -151,12 +173,13 @@ function MonthlyChart({ data, year }: { data: { label: string; invoiced: number;
             </g>
           ))}
           {data.map((d, m) => {
-            const x0 = L + band * m + (band - (bw * 2 + 2)) / 2;
+            const x0 = L + band * m + (band - (bw * 3 + 4)) / 2;
             return (
-              <g key={m} onMouseEnter={() => setHover(m)} onFocus={() => setHover(m)} tabIndex={0} aria-label={`${d.label} : facturé ${fcfa(d.invoiced)}, encaissé ${fcfa(d.collected)}`}>
+              <g key={m} onMouseEnter={() => setHover(m)} onFocus={() => setHover(m)} tabIndex={0} aria-label={`${d.label} : facturé ${fcfa(d.invoiced)}, encaissé ${fcfa(d.collected)}, dépenses ${fcfa(d.spent)}`}>
                 <rect x={L + band * m} y={T} width={band} height={H - T - B} fill={hover === m ? "rgba(255,255,255,.04)" : "transparent"} />
                 <path d={bar(x0, d.invoiced)} fill="var(--s-invoiced)" />
                 <path d={bar(x0 + bw + 2, d.collected)} fill="var(--s-collected)" />
+                <path d={bar(x0 + bw * 2 + 4, d.spent)} fill="var(--s-spent)" />
                 <text x={L + band * m + band / 2} y={H - 10} textAnchor="middle" className="tick">{d.label}</text>
               </g>
             );
@@ -167,14 +190,16 @@ function MonthlyChart({ data, year }: { data: { label: string; invoiced: number;
             <b>{data[hover].label} {year}</b>
             <span><i style={{ background: "var(--s-invoiced)" }} />Facturé <strong>{fcfa(data[hover].invoiced)}</strong></span>
             <span><i style={{ background: "var(--s-collected)" }} />Encaissé <strong>{fcfa(data[hover].collected)}</strong></span>
+            <span><i style={{ background: "var(--s-spent)" }} />Dépenses <strong>{fcfa(data[hover].spent)}</strong></span>
+            <span>Net <strong>{fcfa(data[hover].collected - data[hover].spent)}</strong></span>
           </div>
         )}
       </div>
       <details className="chart-table">
         <summary>Voir le tableau des mois</summary>
         <table className="rtable compact">
-          <thead><tr><th>Mois</th><th className="num">Facturé</th><th className="num">Encaissé</th></tr></thead>
-          <tbody>{data.map((d) => <tr key={d.label}><td>{d.label}</td><td className="num">{fcfa(d.invoiced)}</td><td className="num">{fcfa(d.collected)}</td></tr>)}</tbody>
+          <thead><tr><th>Mois</th><th className="num">Facturé</th><th className="num">Encaissé</th><th className="num">Dépenses</th><th className="num">Net</th></tr></thead>
+          <tbody>{data.map((d) => <tr key={d.label}><td>{d.label}</td><td className="num">{fcfa(d.invoiced)}</td><td className="num">{fcfa(d.collected)}</td><td className="num">{fcfa(d.spent)}</td><td className="num">{fcfa(d.collected - d.spent)}</td></tr>)}</tbody>
         </table>
       </details>
     </section>

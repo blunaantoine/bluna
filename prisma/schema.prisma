@@ -134,3 +134,17 @@ model Setting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+/// Dépenses de l'activité : retirées des sommes encaissées dans les rapports.
+model Expense {
+  id        String   @id @default(cuid())
+  date      DateTime
+  label     String
+  category  String   @default("autre")
+  amount    Int
+  method    String   @default("")
+  notes     String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([date])
+}

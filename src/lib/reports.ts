@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { parseLines } from "./invoices";
+import { EXPENSE_CATEGORIES } from "./expense-labels";
 
 export type Period = { year: number; month: number | null }; // month 1-12, null = année entière
 
@@ -16,11 +17,17 @@ const payDate = (p: { paidOn: Date | null; confirmedAt: Date | null; createdAt: 
 
 export async function buildReport(period: Period) {
   const { start, end } = range(period);
-  const [invoices, payments, open] = await Promise.all([
+  const yearStart = new Date(period.year, 0, 1), yearEnd = new Date(period.year + 1, 0, 1);
+  const [invoices, payments, open, yearExpenses] = await Promise.all([
     db.invoice.findMany({ where: { issuedAt: { gte: start, lt: end }, status: { notIn: ["brouillon", "annulee"] } }, include: { client: true } }),
     db.payment.findMany({ where: { status: "valide" }, include: { invoice: { include: { client: true } } } }),
     db.invoice.findMany({ where: { status: { in: ["envoyee", "partielle"] } }, include: { client: true }, orderBy: { dueAt: "asc" } }),
+    db.expense.findMany({ where: { date: { gte: yearStart, lt: yearEnd } }, orderBy: { date: "asc" } }),
   ]);
+  const expenses = yearExpenses.filter((e) => e.date >= start && e.date < end);
+  const spent = expenses.reduce((a, e) => a + e.amount, 0);
+  const byCategory = new Map<string, number>();
+  for (const e of expenses) byCategory.set(e.category, (byCategory.get(e.category) ?? 0) + e.amount);
   const inPeriod = payments.filter((p) => { const d = payDate(p); return d >= start && d < end; });
 
   const invoiced = invoices.reduce((a, i) => a + i.total, 0);
@@ -50,6 +57,7 @@ export async function buildReport(period: Period) {
       label,
       invoiced: invoices.filter((i) => i.issuedAt >= s && i.issuedAt < e).reduce((a, i) => a + i.total, 0),
       collected: payments.filter((p) => { const d = payDate(p); return d >= s && d < e; }).reduce((a, p) => a + p.amount, 0),
+      spent: yearExpenses.filter((x) => x.date >= s && x.date < e).reduce((a, x) => a + x.amount, 0),
     };
   });
 
@@ -57,7 +65,9 @@ export async function buildReport(period: Period) {
   return {
     period, start: start.toISOString(), end: end.toISOString(),
     kpis: {
-      invoiced, collected,
+      invoiced, collected, spent,
+      net: collected - spent, // encaissé moins les dépenses
+      expenseCount: expenses.length,
       outstanding: Math.max(0, invoiced - collectedOnPeriodInvoices),
       recoveryRate: invoiced ? Math.round((collectedOnPeriodInvoices / invoiced) * 100) : null,
       invoiceCount: invoices.length,
@@ -69,6 +79,8 @@ export async function buildReport(period: Period) {
     topClients: [...byClient.values()].sort((a, b) => b.amount - a.amount).slice(0, 8),
     topServices: [...byService].map(([label, amount]) => ({ label, amount })).sort((a, b) => b.amount - a.amount).slice(0, 8),
     monthly,
+    byCategory: [...byCategory].map(([key, amount]) => ({ label: EXPENSE_CATEGORIES[key] ?? key, amount })).sort((a, b) => b.amount - a.amount),
+    expenses: expenses.map((e) => ({ date: e.date.toISOString(), label: e.label, category: EXPENSE_CATEGORIES[e.category] ?? e.category, method: e.method, amount: e.amount })),
     payments: inPeriod.sort((a, b) => +payDate(a) - +payDate(b)).map((p) => ({
       date: payDate(p).toISOString(), client: p.invoice.client.name, invoice: p.invoice.number, title: p.invoice.title,
       method: p.provider && p.method !== "fedapay" ? `${METHOD[p.method] ?? p.method} (${p.provider})` : METHOD[p.method] ?? p.method, reference: p.reference, amount: p.amount,
@@ -86,12 +98,14 @@ export function reportCsv(r: Report) {
   const label = r.period.month ? `${MONTHS[r.period.month - 1]} ${r.period.year}` : `année ${r.period.year}`;
   const out = [
     line(`Rapport OQUI — ${label}`), "",
-    line("Facturé", r.kpis.invoiced), line("Encaissé", r.kpis.collected), line("Reste à encaisser (factures de la période)", r.kpis.outstanding),
+    line("Facturé", r.kpis.invoiced), line("Encaissé", r.kpis.collected), line("Dépenses", r.kpis.spent), line("Net (encaissé − dépenses)", r.kpis.net), line("Reste à encaisser (factures de la période)", r.kpis.outstanding),
     line("Factures émises", r.kpis.invoiceCount), line("Paiements reçus", r.kpis.paymentCount), "",
     line("Paiements"), line("Date", "Client", "Facture", "Prestation", "Moyen", "Référence", "Montant (FCFA)"),
     ...r.payments.map((p) => line(new Date(p.date).toLocaleDateString("fr-FR"), p.client, p.invoice, p.title, p.method, p.reference, p.amount)),
   ];
-  if (r.monthly) out.push("", line("Mois", "Facturé", "Encaissé"), ...r.monthly.map((m) => line(m.label, m.invoiced, m.collected)));
+  out.push("", line("Dépenses"), line("Date", "Objet", "Catégorie", "Moyen", "Montant (FCFA)"),
+    ...r.expenses.map((e) => line(new Date(e.date).toLocaleDateString("fr-FR"), e.label, e.category, e.method, e.amount)));
+  if (r.monthly) out.push("", line("Mois", "Facturé", "Encaissé", "Dépenses", "Net"), ...r.monthly.map((m) => line(m.label, m.invoiced, m.collected, m.spent, m.collected - m.spent)));
   out.push("", line("Factures à encaisser (à ce jour)"), line("Facture", "Client", "Prestation", "Échéance", "En retard", "Reste (FCFA)"),
     ...r.unpaid.map((u) => line(u.number, u.client, u.title, u.due ? new Date(u.due).toLocaleDateString("fr-FR") : "", u.overdue ? "oui" : "non", u.remaining)));
   return "﻿" + out.join("\r\n");

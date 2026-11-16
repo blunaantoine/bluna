@@ -43,11 +43,15 @@ export default function BillingAdmin({ projects, online = false }: { projects: {
   const [clientEdit, setClientEdit] = useState<Client | "new" | null>(null);
   const [filter, setFilter] = useState("ouvertes");
   const [toast, setToast] = useState("");
+  const [monthKpis, setMonthKpis] = useState<{ collected: number; spent: number; net: number } | null>(null);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
   const load = useCallback(async () => {
     const [a, b] = await Promise.all([api<{ invoices: Invoice[] }>("/api/admin/factures"), api<{ clients: Client[] }>("/api/admin/clients")]);
     setInvoices(a.data.invoices ?? []); setClients(b.data.clients ?? []);
+    // Mêmes chiffres que le rapport du mois : date réelle du paiement, dépenses retirées.
+    const n = new Date(); const r = await api<{ kpis: { collected: number; spent: number; net: number } }>(`/api/admin/rapports?annee=${n.getFullYear()}&mois=${n.getMonth() + 1}`);
+    if (r.data.kpis) setMonthKpis(r.data.kpis);
   }, []);
   useEffect(() => { load(); const t = setInterval(load, 20000); return () => clearInterval(t); }, [load]);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(""), 3500); return () => clearTimeout(t); }, [toast]);
@@ -55,8 +59,6 @@ export default function BillingAdmin({ projects, online = false }: { projects: {
   const pending = useMemo(() => (invoices ?? []).flatMap((i) => i.payments.filter((p) => p.status === "en_attente" && p.method !== "fedapay").map((p) => ({ p, i }))), [invoices]);
   const open = (invoices ?? []).filter((i) => i.status === "envoyee" || i.status === "partielle");
   const toCollect = open.reduce((a, i) => a + i.total - i.amountPaid, 0);
-  const month = new Date(); month.setDate(1); month.setHours(0, 0, 0, 0);
-  const collected = (invoices ?? []).flatMap((i) => i.payments).filter((p) => p.status === "valide" && new Date(p.createdAt) >= month).reduce((a, p) => a + p.amount, 0);
   const shown = (invoices ?? []).filter((i) => filter === "toutes" ? true : filter === "ouvertes" ? i.status === "envoyee" || i.status === "partielle" || i.status === "brouillon" : i.status === filter);
 
   const copy = async (txt: string, msg: string) => { try { await navigator.clipboard.writeText(txt); setToast(msg); } catch { setToast(txt); } };
@@ -79,7 +81,8 @@ export default function BillingAdmin({ projects, online = false }: { projects: {
           </div>
           <div className="admin-kpis">
             <div><strong>{fcfa(toCollect)}</strong><span>à encaisser</span></div>
-            <div><strong>{fcfa(collected)}</strong><span>encaissé ce mois</span></div>
+            <div><strong>{fcfa(monthKpis?.collected ?? 0)}</strong><span>encaissé ce mois</span></div>
+            <a href="/admin/depenses" title="Encaissé moins les dépenses du mois"><strong>{fcfa(monthKpis?.net ?? 0)}</strong><span>net ce mois{monthKpis?.spent ? ` (− ${fcfa(monthKpis.spent)} de dépenses)` : ""}</span></a>
             <div><strong>{open.filter((i) => i.overdue).length}</strong><span>en retard</span></div>
           </div>
         </div>
