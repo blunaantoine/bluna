@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { fcfa, remaining } from "@/lib/invoices";
 import { profile } from "@/content/site";
 import Envelope from "@/components/billing/Envelope";
+import InvoiceSeen from "@/components/billing/InvoiceSeen";
 import "../envelope.css";
 
 const isans = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--f-isans", display: "swap" });
@@ -39,6 +40,7 @@ export default async function EnvelopePage({ params }: { params: Promise<{ token
   const due = remaining(inv);
   return (
     <div className={`${isans.variable} ${iserif.variable}`}>
+      <InvoiceSeen token={inv.token} />
       <Envelope
         brand={profile.studio}
         client={inv.client.name}

@@ -9,6 +9,7 @@ import { getPaymentMethods, KINDS, toPublicMethod } from "@/lib/payment-methods"
 import { offersInLines, shortConditions } from "@/content/offers";
 import { sectionsInLines } from "@/content/tariffs";
 import PayPanel from "@/components/billing/PayPanel";
+import InvoiceSeen from "@/components/billing/InvoiceSeen";
 import PrintButton from "@/components/billing/PrintButton";
 import ReceiptPrompt from "@/components/billing/ReceiptPrompt";
 import { resendEnabled } from "@/lib/resend";
@@ -49,6 +50,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
       </div>
 
       <div className="inv-layout">
+        <InvoiceSeen token={token} />
         <article className="paper" aria-label={`Facture ${inv.number}`}>
           <header className="paper-head">
             <div>

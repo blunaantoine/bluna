@@ -18,6 +18,7 @@ const parseAi = (s: string): Analysis | null => { try { return s ? (JSON.parse(s
 type Invoice = {
   id: string; number: string; token: string; title: string; items: Line[]; discount: number; discountLabel: string; total: number; amountPaid: number;
   allowDeposit: boolean; status: string; notes: string; projectSlug: string | null; issuedAt: string; dueAt: string | null; paidAt: string | null;
+  viewCount: number; firstViewedAt: string | null; lastViewedAt: string | null;
   overdue: boolean; client: Client; payments: Payment[];
 };
 
@@ -139,6 +140,7 @@ export default function BillingAdmin({ projects, online = false }: { projects: {
                     <span className="mono">{i.number} · {dateFr(i.issuedAt)}{i.dueAt ? ` · échéance ${dateFr(i.dueAt)}` : ""}</span>
                     <b>{i.title}</b>
                     <span className="bill-client">{i.client.name}{i.client.company ? ` · ${i.client.company}` : ""}</span>
+                    {i.status !== "brouillon" && <Seen i={i} />}
                   </span>
                   <span className={`pill s-${i.overdue ? "retard" : i.status}`}>{i.overdue ? "En retard" : LABEL[i.status]}</span>
                   <span className="bill-amount"><strong>{fcfa(i.total)}</strong>{i.amountPaid > 0 && i.status !== "payee" && <span className="mono">reste {fcfa(left)}</span>}</span>
@@ -477,5 +479,16 @@ function ClientEditor({ client, onClose, onDone }: { client: Client | null; onCl
       </div>
       {err && <p className="err" role="alert">{err}</p>}
     </Drawer>
+  );
+}
+
+/** Le client a-t-il ouvert sa facture ? */
+function Seen({ i }: { i: Invoice }) {
+  if (!i.lastViewedAt) return <span className="seen seen-no">Pas encore ouverte par le client</span>;
+  const when = (d: string) => new Date(d).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  return (
+    <span className="seen seen-yes" title={`Première ouverture : ${when(i.firstViewedAt ?? i.lastViewedAt)}`}>
+      Vue par le client{i.viewCount > 1 ? ` ${i.viewCount} fois` : ""} · {i.viewCount > 1 ? "dernière fois le " : "le "}{when(i.lastViewedAt)}
+    </span>
   );
 }

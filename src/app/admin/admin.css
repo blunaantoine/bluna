@@ -253,3 +253,11 @@ fieldset[disabled] { opacity: .6; }
 .exp-row-actions .btn { margin-left: .3rem; }
 .exp-row-actions .danger { color: var(--alert); border-color: rgba(255,138,122,.5); }
 .rtable tr.is-editing td { background: var(--panel); }
+
+/* Facture vue par le client */
+.seen { display: inline-flex; align-items: center; gap: .4rem; font-size: var(--s-xs); }
+.seen::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.seen-yes { color: #7fd4a0; }
+.seen-yes::before { background: #7fd4a0; }
+.seen-no { color: var(--silver-lo); }
+.seen-no::before { border: 1px solid var(--silver-lo); }
